@@ -174,4 +174,158 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Ajouter cette route dans /routes/products.js
+
+router.post('/', async (req, res) => {
+  try {
+    const {
+      // Informations de base
+      product_name,
+      generic_name,
+      quantity,
+      brands,
+      categories_en,
+      origins_en,
+      countries_en,
+      traces_en,
+      
+      // Additifs
+      additives_n,
+      additives_en,
+      additives,
+      
+      // Scores nutritionnels
+      nutriscore_score,
+      nutrition_score_fr_100g,
+      ecoscore_score,
+      ecoscore_grade,
+      
+      // Catégories
+      food_groups_en,
+      main_category_en,
+      
+      // Valeurs nutritionnelles pour 100g
+      energy_kcal_100g,
+      fat_100g,
+      saturated_fat_100g,
+      monounsaturated_fat_100g,
+      polyunsaturated_fat_100g,
+      trans_fat_100g,
+      cholesterol_100g,
+      carbohydrates_100g,
+      sugars_100g,
+      fiber_100g,
+      proteins_100g,
+      salt_100g,
+      sodium_100g,
+      
+      // Vitamines et minéraux
+      vitamin_a_100g,
+      vitamin_c_100g,
+      potassium_100g,
+      calcium_100g,
+      iron_100g,
+      
+      // Autres
+      fruits_vegetables_nuts_estimate_from_ingredients_100g,
+      
+      // Champs de compatibilité (optionnels)
+      name,
+      brand,
+      categories,
+      calories,
+      protein_100g
+    } = req.body;
+
+    // Validation des champs obligatoires
+    if (!product_name && !name) {
+      return res.status(400).json({ 
+        error: 'Product name is required (product_name or name)' 
+      });
+    }
+
+    // Créer le nouveau produit
+    const newProduct = new Product({
+      // Informations de base
+      product_name: product_name || name,
+      generic_name,
+      quantity,
+      brands: brands || brand,
+      categories_en: categories_en || categories,
+      origins_en,
+      countries_en,
+      traces_en,
+      
+      // Additifs
+      additives_n,
+      additives_en,
+      additives: Array.isArray(additives) ? additives : [],
+      
+      // Scores nutritionnels
+      nutriscore_score,
+      nutrition_score_fr_100g,
+      ecoscore_score,
+      ecoscore_grade,
+      
+      // Catégories
+      food_groups_en,
+      main_category_en,
+      
+      // Valeurs nutritionnelles pour 100g
+      energy_kcal_100g: energy_kcal_100g || calories,
+      fat_100g,
+      saturated_fat_100g,
+      monounsaturated_fat_100g,
+      polyunsaturated_fat_100g,
+      trans_fat_100g,
+      cholesterol_100g,
+      carbohydrates_100g,
+      sugars_100g,
+      fiber_100g,
+      proteins_100g: proteins_100g || protein_100g,
+      salt_100g,
+      sodium_100g,
+      
+      // Vitamines et minéraux
+      vitamin_a_100g,
+      vitamin_c_100g,
+      potassium_100g,
+      calcium_100g,
+      iron_100g,
+      
+      // Autres
+      fruits_vegetables_nuts_estimate_from_ingredients_100g,
+      
+      // Champs pour compatibilité
+      name: product_name || name,
+      brand: brands || brand,
+      categories: categories_en || categories,
+      calories: energy_kcal_100g || calories,
+      protein_100g: proteins_100g || protein_100g,
+    });
+
+    // Sauvegarder le produit
+    const savedProduct = await newProduct.save();
+
+    // Retourner le produit créé avec un DTO
+    res.status(201).json({
+      message: 'Product created successfully',
+      product: new ProductDTO(savedProduct)
+    });
+
+  } catch (error) {
+    console.error('Error creating product:', error);
+    
+    // Gestion des erreurs de validation Mongoose
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        error: 'Validation error',
+        details: Object.values(error.errors).map(err => err.message)
+      });
+    }
+    
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;
