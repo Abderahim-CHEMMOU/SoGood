@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { ServiceProduitsAlimentaires } from '../../services/service-produits-alimentaires';
 import { ProduitAlimentaireDTO } from '../../models/produit-alimentaire.dto';
 import { CommonModule } from '@angular/common';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 
 @Component({
   selector: 'app-composant-detail-produit',
@@ -23,13 +23,27 @@ export class ComposantDetailProduit {
     private router: Router,
     private serviceProduits: ServiceProduitsAlimentaires
   ) {
-    const id = this.route.snapshot.paramMap.get('id')!;
-    this.produit$ = this.serviceProduits.obtenirProduitParId(id);
+    console.log('ComposantDetailProduit: Initialisation'); // Débogage
+    const id = this.route.snapshot.paramMap.get('id');
+    console.log('ComposantDetailProduit: ID reçu:', id); // Débogage
+    if (!id) {
+      console.error('ComposantDetailProduit: Aucun ID fourni dans l\'URL');
+      this.produit$ = of(null);
+    } else {
+      this.produit$ = this.serviceProduits.obtenirProduitParId(id);
+      this.produit$.subscribe(produit => {
+        console.log('ComposantDetailProduit: Produit récupéré:', produit); // Débogage
+      });
+    }
   }
 
   obtenirCouleurNutriScore(produit: ProduitAlimentaireDTO | null): string {
-    if (!produit || produit.scoreNutriScore === undefined) return '#ffffff';
+    if (!produit || produit.scoreNutriScore === undefined) {
+      console.log('ComposantDetailProduit: Produit ou score non défini:', produit); // Débogage
+      return '#ffffff';
+    }
     const score = produit.scoreNutriScore;
+    console.log('ComposantDetailProduit: Score Nutri-Score:', score); // Débogage
     if (score <= -2) return '#008000'; // A: Vert
     if (score <= 3) return '#90EE90'; // B: Vert clair
     if (score <= 11) return '#FFFF00'; // C: Jaune
@@ -38,6 +52,7 @@ export class ComposantDetailProduit {
   }
 
   retournerALaListe() {
+    console.log('ComposantDetailProduit: Retour à la liste'); // Débogage
     this.router.navigate(['/']);
   }
 }

@@ -28,6 +28,7 @@ export class ComposantCarteProduit {
   }
 
   naviguerVersDetails() {
+    console.log('Navigation vers produit:', this.produit.id); // Débogage
     this.router.navigate(['/produit', this.produit.id]);
   }
 }

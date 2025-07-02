@@ -1,4 +1,5 @@
-<mat-sidenav-container>
+<router-outlet *ngIf="!isRootRoute"></router-outlet>
+<mat-sidenav-container *ngIf="isRootRoute">
   <mat-sidenav mode="side" opened>
     <app-composant-barre-laterale (filtrerCategorie)="mettreAJourResultatsRecherche($event)"></app-composant-barre-laterale>
   </mat-sidenav>
