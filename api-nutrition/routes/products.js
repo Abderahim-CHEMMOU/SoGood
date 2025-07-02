@@ -10,8 +10,7 @@ router.get('/search', authMiddleware, ProductController.searchProducts);
 router.get('/controversial', authMiddleware, ProductController.getControversialProducts);
 router.get('/nutriscore/range', authMiddleware, ProductController.getProductsByNutriscoreRange);
 router.get('/nutriscore/:score', authMiddleware, ProductController.getProductsByNutriscore);
-// router.post('/', ProductController.createProduct);
 router.post('/', authMiddleware, ProductController.createProduct);
 router.get('/:id', authMiddleware,ProductController.getProductById);
-
+router.delete('/:id', authMiddleware, adminMiddleware, ProductController.deleteProduct);
 module.exports = router;
