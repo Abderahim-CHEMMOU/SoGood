@@ -1,14 +1,16 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const productRoutes = require('./routes/products');
+const authRoutes = require('./routes/auth');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 // Connexion MongoDB
-const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost:27017/food';
+const MONGO_URL = process.env.MONGO_URL;
 
 mongoose.connect(MONGO_URL, {
   useNewUrlParser: true,
@@ -22,6 +24,7 @@ mongoose.connect(MONGO_URL, {
 
 // Routes
 app.use('/products', productRoutes);
+app.use('/auth', authRoutes);
 
 // Route racine pour test
 app.get('/', (req, res) => {

@@ -248,6 +248,55 @@ class ProductController {
       res.status(500).json({ error: 'Internal server error' });
     }
   }
+
+  // DELETE /products/:id - Supprimer un produit (Admin uniquement)
+  static async deleteProduct(req, res) {
+    try {
+      const productId = req.params.id;
+      
+      // Validation de l'ID
+      if (!productId || !productId.match(/^[0-9a-fA-F]{24}$/)) {
+        return res.status(400).json({ error: 'Invalid product ID format' });
+      }
+
+      // Chercher le produit
+      const product = await Product.findById(productId);
+      
+      if (!product) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+
+      // Supprimer le produit
+      await Product.findByIdAndDelete(productId);
+
+      // Log de l'action (optionnel mais recommandé)
+      console.log(`🗑️  Product deleted by admin ${req.user.username}:`, {
+        id: product._id,
+        name: product.product_name || product.name,
+        deletedBy: req.user.email
+      });
+
+      res.json({
+        message: 'Product deleted successfully',
+        deletedProduct: {
+          id: product._id,
+          name: product.product_name || product.name,
+          brand: product.brands || product.brand,
+          deletedAt: new Date().toISOString(),
+          deletedBy: req.user.username
+        }
+      });
+
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      
+      if (error.name === 'CastError') {
+        return res.status(400).json({ error: 'Invalid product ID' });
+      }
+      
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
 }
 
 module.exports = ProductController;
