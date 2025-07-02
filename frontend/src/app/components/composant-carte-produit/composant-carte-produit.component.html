@@ -1,0 +1,15 @@
+<mat-card [style.background-color]="obtenirCouleurNutriScore()" (click)="naviguerVersDetails()" class="clickable">
+  <mat-card-header>
+    <mat-card-title>{{ produit.nom }}</mat-card-title>
+    <mat-card-subtitle>{{ produit.marque }}</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    <p>Calories: {{ produit.calories }} kcal</p>
+    <p>Protéines: {{ produit.proteines }} g</p>
+    <p>Sucres: {{ produit.sucres }} g</p>
+    <p>Sel: {{ produit.sel }} g</p>
+    <p>Graisses saturées: {{ produit.graissesSaturees }} g</p>
+    <p>Fibres: {{ produit.fibres }} g</p>
+    <p *ngIf="produit.scoreNutriScore !== undefined">NutriScore: {{ produit.scoreNutriScore }}</p>
+  </mat-card-content>
+</mat-card>

@@ -1,0 +1,24 @@
+<mat-tab-group>
+  <mat-tab label="Connexion">
+    <mat-form-field appearance="outline">
+      <mat-label>Email</mat-label>
+      <input matInput [(ngModel)]="emailConnexion" type="email" aria-label="Adresse email pour connexion">
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Mot de passe</mat-label>
+      <input matInput [(ngModel)]="motDePasseConnexion" type="password" aria-label="Mot de passe pour connexion">
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="connecterUtilisateur()">Se connecter</button>
+  </mat-tab>
+  <mat-tab label="Inscription">
+    <mat-form-field appearance="outline">
+      <mat-label>Email</mat-label>
+      <input matInput [(ngModel)]="emailInscription" type="email" aria-label="Adresse email pour inscription">
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Mot de passe</mat-label>
+      <input matInput [(ngModel)]="motDePasseInscription" type="password" aria-label="Mot de passe pour inscription">
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="inscrireUtilisateur()">S'inscrire</button>
+  </mat-tab>
+</mat-tab-group>

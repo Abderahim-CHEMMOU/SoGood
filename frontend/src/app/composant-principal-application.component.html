@@ -1,0 +1,16 @@
+<mat-sidenav-container>
+  <mat-sidenav mode="side" opened>
+    <app-composant-barre-laterale (filtrerCategorie)="mettreAJourResultatsRecherche($event)"></app-composant-barre-laterale>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <div class="contenu-principal">
+      <app-composant-barre-recherche (recherche)="mettreAJourResultatsRecherche($event)"></app-composant-barre-recherche>
+      <button mat-button color="warn" (click)="deconnecterUtilisateur()">Déconnexion</button>
+      <div class="produits-liste">
+        <h2>Produits</h2>
+        <app-composant-carte-produit *ngFor="let produit of produitsFiltres" [produit]="produit"></app-composant-carte-produit>
+        <p *ngIf="produitsFiltres.length === 0">Aucun produit trouvé.</p>
+      </div>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

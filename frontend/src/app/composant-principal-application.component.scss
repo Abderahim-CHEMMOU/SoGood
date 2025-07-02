@@ -1,0 +1,33 @@
+mat-sidenav-container {
+  height: 100vh;
+}
+
+mat-sidenav {
+  width: 300px;
+  background-color: #f5f5f5;
+  padding: 20px;
+}
+
+.contenu-principal {
+  padding: 20px;
+  text-align: center;
+}
+
+button {
+  margin-top: 10px;
+}
+
+.produits-liste {
+  margin-top: 20px;
+}
+
+.produits-liste h2 {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+}
+
+.produits-liste app-composant-carte-produit {
+  display: block;
+  margin: 10px auto;
+  max-width: 500px;
+}
