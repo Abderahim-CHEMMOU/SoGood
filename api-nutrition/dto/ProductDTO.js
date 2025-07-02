@@ -1,5 +1,6 @@
 class ProductDTO {
     constructor(product) {
+      this.id = product._id || product.id;
       this.name = product.name;
       this.brand = product.brand;
       this.calories = product.calories;
