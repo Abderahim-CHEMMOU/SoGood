@@ -1,70 +1,16 @@
 const express = require('express');
-const Product = require('../models/Product');
-const ProductDTO = require('../dto/ProductDTO');
+const ProductController = require('../controllers/productController');
+const { authMiddleware, adminMiddleware } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = 20;
-  const products = await Product.find()
-    .skip((page - 1) * limit)
-    .limit(limit);
-
-  res.json(products.map(p => new ProductDTO(p)));
-});
-
-router.get('/search', async (req, res) => {
-  const name = req.query.name?.toLowerCase();
-  if (!name) return res.status(400).json({ error: 'Missing query ?name=' });
-
-  const products = await Product.find({ name: { $regex: name, $options: 'i' } }).limit(20);
-  res.json(products.map(p => new ProductDTO(p)));
-});
-
-router.get('/:id', async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ error: 'Not found' });
-    res.json(new ProductDTO(product));
-  } catch (e) {
-    res.status(400).json({ error: 'Invalid ID' });
-  }
-});
-
-router.get('/controversial', async (req, res) => {
-  try {
-    const results = await Product.aggregate([
-      {
-        $project: {
-          name: 1,
-          brand: 1,
-          additivesCount: { $size: "$additives" },
-          nutriscore_score: 1,
-          controversy_score: {
-            $add: [
-              { $size: "$additives" },
-              {
-                $cond: {
-                  if: { $gt: ["$nutriscore_score", 10] }, // plus le nutriscore est haut, pire c'est
-                  then: "$nutriscore_score",
-                  else: 0
-                }
-              }
-            ]
-          }
-        }
-      },
-      { $sort: { controversy_score: -1 } },
-      { $limit: 20 }
-    ]);
-
-    res.json(results);
-  } catch (err) {
-    console.error("Erreur /controversial :", err);
-    res.status(500).json({ error: "Erreur interne du serveur" });
-  }
-});
-
-
+// Routes avec controllers
+router.get('/', authMiddleware, ProductController.getAllProducts);
+router.get('/search', authMiddleware, ProductController.searchProducts);
+router.get('/controversial', authMiddleware, ProductController.getControversialProducts);
+router.get('/nutriscore/range', authMiddleware, ProductController.getProductsByNutriscoreRange);
+router.get('/nutriscore/:score', authMiddleware, ProductController.getProductsByNutriscore);
+router.post('/', authMiddleware, ProductController.createProduct);
+router.get('/:id', authMiddleware,ProductController.getProductById);
+router.delete('/:id', authMiddleware, adminMiddleware, ProductController.deleteProduct);
 module.exports = router;
