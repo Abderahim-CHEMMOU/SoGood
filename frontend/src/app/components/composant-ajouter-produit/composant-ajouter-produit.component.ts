@@ -121,13 +121,49 @@ export class ComposantAjouterProduit {
       next: (response) => {
         console.log('✅ Produit ajouté avec succès:', response);
         
-        this.snackBar.open(`Produit "${formData.product_name}" ajouté avec succès`, 'Fermer', {
-          duration: 4000,
-          panelClass: 'toaster-success'
-        });
+        // Extraire l'ID du produit créé depuis la réponse
+        const produitId = response.id || response._id || response.productId;
         
-        // Retourner à la liste des produits
-        this.router.navigate(['/']);
+        if (produitId) {
+          console.log('🔍 Redirection vers le produit créé:', produitId);
+          
+          // Créer un toaster détaillé avec toutes les informations
+          const messageDetaille = this.creerMessageToasterDetaille(formData, response, produitId);
+          
+          this.snackBar.open(messageDetaille, 'Voir le produit', {
+            duration: 8000, // Plus long pour laisser le temps de lire
+            panelClass: 'toaster-success-detailed',
+            horizontalPosition: 'center',
+            verticalPosition: 'top'
+          }).onAction().subscribe(() => {
+            // Si l'utilisateur clique sur "Voir le produit"
+            this.router.navigate(['/produit', produitId]);
+          });
+          
+          // Redirection automatique après 3 secondes
+          setTimeout(() => {
+            this.router.navigate(['/produit', produitId]);
+          }, 3000);
+          
+        } else {
+          console.warn('⚠️ ID du produit non trouvé dans la réponse, redirection vers la liste');
+          
+          const messageDetaille = this.creerMessageToasterDetaille(formData, response, null);
+          
+          this.snackBar.open(messageDetaille, 'Voir la liste', {
+            duration: 6000,
+            panelClass: 'toaster-success',
+            horizontalPosition: 'center',
+            verticalPosition: 'top'
+          }).onAction().subscribe(() => {
+            this.router.navigate(['/']);
+          });
+          
+          // Fallback vers la liste si pas d'ID
+          setTimeout(() => {
+            this.router.navigate(['/']);
+          }, 3000);
+        }
       },
       error: (error) => {
         console.error('❌ Erreur lors de l\'ajout:', error);
@@ -176,5 +212,60 @@ export class ComposantAjouterProduit {
       if (champ.errors['max']) return `Valeur maximum: ${champ.errors['max'].max}`;
     }
     return '';
+  }
+
+  // Méthode pour créer un message de toaster détaillé
+  private creerMessageToasterDetaille(formData: any, response: any, produitId: string | null): string {
+    const nom = formData.product_name;
+    const marque = formData.brands;
+    const calories = formData.energy_kcal_100g || 0;
+    const nutriscore = formData.nutriscore_score;
+    const proteines = formData.proteins_100g || 0;
+    const sucres = formData.sugars_100g || 0;
+    const sel = formData.salt_100g || 0;
+    
+    // Déterminer le grade NutriScore
+    let gradeNutri = '';
+    if (nutriscore !== undefined && nutriscore !== null) {
+      if (nutriscore <= -2) gradeNutri = 'A (Excellent)';
+      else if (nutriscore <= 3) gradeNutri = 'B (Bon)';
+      else if (nutriscore <= 11) gradeNutri = 'C (Moyen)';
+      else if (nutriscore <= 16) gradeNutri = 'D (Médiocre)';
+      else gradeNutri = 'E (Mauvais)';
+    }
+    
+    let message = `✅ PRODUIT CRÉÉ AVEC SUCCÈS !\n\n`;
+    message += `📦 Nom: ${nom}\n`;
+    message += `🏪 Marque: ${marque}\n`;
+    message += `⚡ Calories: ${calories} kcal/100g\n`;
+    message += `🥩 Protéines: ${proteines}g/100g\n`;
+    message += `🍯 Sucres: ${sucres}g/100g\n`;
+    message += `🧂 Sel: ${sel}g/100g\n`;
+    
+    if (gradeNutri) {
+      message += `📊 NutriScore: ${gradeNutri} (${nutriscore})\n`;
+    }
+    
+    if (formData.quantity) {
+      message += `📏 Quantité: ${formData.quantity}\n`;
+    }
+    
+    if (formData.categories_en) {
+      message += `🏷️ Catégorie: ${formData.categories_en}\n`;
+    }
+    
+    if (formData.additives_n && formData.additives_n > 0) {
+      message += `⚗️ Additifs: ${formData.additives_n} détecté(s)\n`;
+    }
+    
+    message += `\n🆔 ID: ${produitId || 'Non disponible'}\n`;
+    
+    if (produitId) {
+      message += `\n🔄 Redirection dans 3 secondes...`;
+    } else {
+      message += `\n🔄 Retour à la liste dans 3 secondes...`;
+    }
+    
+    return message;
   }
 }
