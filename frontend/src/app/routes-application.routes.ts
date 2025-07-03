@@ -3,7 +3,9 @@ import { ComposantPrincipalApplication } from './composant-principal-application
 import { ComposantAuthentification } from './components/composant-authentification/composant-authentification.component';
 import { ComposantDetailProduit } from './components/composant-detail-produit/composant-detail-produit.component';
 import { ComposantLayout } from './layout/composant-layout.component';
-import { ComposantListeProduits } from './components/composant-liste-produits/composant-liste-produits.component'
+import { ComposantListeProduits } from './components/composant-liste-produits/composant-liste-produits.component';
+import { ComposantFavoris } from './components/composant-favoris/composant-favoris.component';
+
 export const routes: Routes = [
   { path: 'authentification', component: ComposantAuthentification },
   { 
@@ -11,6 +13,7 @@ export const routes: Routes = [
     component: ComposantLayout,
     children: [
       { path: '', component: ComposantListeProduits },
+      { path: 'favoris', component: ComposantFavoris },
       { path: 'produit/:id', component: ComposantDetailProduit }
     ]
   },

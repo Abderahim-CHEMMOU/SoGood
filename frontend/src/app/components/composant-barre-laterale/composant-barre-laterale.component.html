@@ -1,11 +1,17 @@
 <div class="barre-laterale">
-  <div class="section">
-    <h3 class="clickable" (click)="filtrerParCategorie('sains')">Produits Sains (A, B)</h3>
+  <!-- Section Favoris en premier -->
+  <div class="favoris-section" (click)="naviguerVersFavoris()">
+    <h3 class="clickable">Mes Favoris</h3>
   </div>
-  <div class="section">
-    <h3 class="clickable" (click)="filtrerParCategorie('moderes')">Produits Modérés (C)</h3>
+  
+  <!-- Sections de filtrage -->
+  <div class="section" (click)="filtrerParCategorie('sains')">
+    <h3 class="clickable">Produits Sains (A, B)</h3>
   </div>
-  <div class="section">
-    <h3 class="clickable" (click)="filtrerParCategorie('dangereux')">Produits Dangereux (D, E)</h3>
+  <div class="section" (click)="filtrerParCategorie('moderes')">
+    <h3 class="clickable">Produits Modérés (C)</h3>
+  </div>
+  <div class="section" (click)="filtrerParCategorie('dangereux')">
+    <h3 class="clickable">Produits Dangereux (D, E)</h3>
   </div>
 </div>
