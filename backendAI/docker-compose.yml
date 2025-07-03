@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  fastapi-nutriscore:
+    build: .
+    container_name: fastapi-nutriscore
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./models:/app/models
+    restart: unless-stopped
+    networks:
+      - api-nutrition_default  # Réseau de API Node.js
+
+networks:
+  api-nutrition_default:
+    external: true
