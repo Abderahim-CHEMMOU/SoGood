@@ -6,6 +6,8 @@ import { ServiceProduitsAlimentaires } from '../../services/service-produits-ali
 import { ProduitAlimentaireDTO } from '../../models/produit-alimentaire.dto';
 import { CommonModule } from '@angular/common';
 import { Observable, of } from 'rxjs';
+import { LikeService } from '../../services/like.service';
+
 
 @Component({
   selector: 'app-composant-detail-produit',
@@ -17,11 +19,14 @@ import { Observable, of } from 'rxjs';
 })
 export class ComposantDetailProduit {
   produit$: Observable<ProduitAlimentaireDTO | null>;
+   isLiked = false;
+  private currentProduct: ProduitAlimentaireDTO | null = null;
 
   constructor(
-    private route: ActivatedRoute,
+     private route: ActivatedRoute,
     private router: Router,
-    private serviceProduits: ServiceProduitsAlimentaires
+    private serviceProduits: ServiceProduitsAlimentaires,
+    private likeService: LikeService
   ) {
     console.log('ComposantDetailProduit: Initialisation'); // Débogage
     const id = this.route.snapshot.paramMap.get('id');
@@ -34,6 +39,28 @@ export class ComposantDetailProduit {
       this.produit$.subscribe(produit => {
         console.log('ComposantDetailProduit: Produit récupéré:', produit); // Débogage
       });
+    }
+  }
+
+    ngOnInit() {
+    this.produit$.subscribe(produit => {
+      this.currentProduct = produit;
+      if (produit) {
+        this.isLiked = this.likeService.isLiked(produit.id);
+      }
+    });
+
+    // S'abonner aux changements de likes
+    this.likeService.likedProducts$.subscribe(likedProducts => {
+      if (this.currentProduct) {
+        this.isLiked = likedProducts.includes(this.currentProduct.id);
+      }
+    });
+  }
+
+  toggleLike() {
+    if (this.currentProduct) {
+      this.likeService.toggleLike(this.currentProduct.id, this.currentProduct.nom);
     }
   }
 

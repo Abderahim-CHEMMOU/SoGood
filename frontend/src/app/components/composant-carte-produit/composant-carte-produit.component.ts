@@ -3,6 +3,8 @@ import { MatCardModule } from '@angular/material/card';
 import { ProduitAlimentaireDTO } from '../../models/produit-alimentaire.dto';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { LikeService } from '../../services/like.service';
+
 
 @Component({
   selector: 'app-composant-carte-produit',
@@ -14,8 +16,23 @@ import { Router } from '@angular/router';
 })
 export class ComposantCarteProduit {
   @Input() produit!: ProduitAlimentaireDTO;
+   isLiked = false;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private likeService: LikeService) {}
+
+    ngOnInit() {
+    this.isLiked = this.likeService.isLiked(this.produit.id);
+    
+    // S'abonner aux changements de likes
+    this.likeService.likedProducts$.subscribe(likedProducts => {
+      this.isLiked = likedProducts.includes(this.produit.id);
+    });
+  }
+
+  toggleLike(event: Event) {
+    event.stopPropagation(); // Empêche la navigation vers le détail
+    this.likeService.toggleLike(this.produit.id, this.produit.nom);
+  }
 
   obtenirCouleurNutriScore(): string {
     const score = this.produit.scoreNutriScore;

@@ -133,3 +133,24 @@ mat-card-content {
 mat-card {
   animation: fadeInUp 0.3s ease-out;
 }
+
+.like-button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+  
+    
+    .like-icon {
+        font-size: var(--font-size-lg);
+        color: var(--color-text-secondary);
+        transition: color 0.2s ease;
+    }
+    
+    &.liked .like-icon {
+        color: var(--color-primary);
+    }
+    
+    &:hover .like-icon {
+        color: var(--color-primary-hover);
+    }
+}
