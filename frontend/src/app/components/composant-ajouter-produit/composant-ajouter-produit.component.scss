@@ -1,0 +1,272 @@
+// src/app/components/composant-ajouter-produit/composant-ajouter-produit.component.scss
+
+.ajouter-produit-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: var(--space-6);
+}
+
+.formulaire-card {
+  background-color: var(--color-bg-elevated) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-xl) !important;
+  box-shadow: var(--shadow-lg) !important;
+  overflow: hidden;
+}
+
+// Header de la carte
+mat-card-header {
+  padding: var(--space-8) var(--space-6) var(--space-6) !important;
+  text-align: center;
+  background: linear-gradient(135deg, var(--color-bg-secondary), var(--color-bg-tertiary));
+  border-bottom: 1px solid var(--color-border);
+  
+  mat-card-title {
+    font-size: var(--font-size-3xl) !important;
+    font-weight: var(--font-weight-bold) !important;
+    color: var(--color-text-primary) !important;
+    margin-bottom: var(--space-3) !important;
+  }
+  
+  mat-card-subtitle {
+    font-size: var(--font-size-lg) !important;
+    color: var(--color-text-secondary) !important;
+  }
+}
+
+// Contenu du formulaire
+mat-card-content {
+  padding: var(--space-8) !important;
+}
+
+.formulaire-produit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+// Sections du formulaire
+.section-formulaire {
+  padding: var(--space-6);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  
+  h3 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--space-6) 0;
+    padding-bottom: var(--space-3);
+    border-bottom: 2px solid var(--color-border);
+  }
+}
+
+// Disposition des champs
+.champs-ligne {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// Tailles des champs
+.champ-petit {
+  flex: 1;
+  min-width: 120px;
+}
+
+.champ-moyen {
+  flex: 1.5;
+  min-width: 180px;
+}
+
+.champ-large {
+  flex: 2;
+  min-width: 250px;
+}
+
+.champ-extra-large {
+  flex: 3;
+  min-width: 300px;
+}
+
+// Styles des champs de formulaire
+mat-form-field {
+  .mat-mdc-text-field-wrapper {
+    background-color: var(--color-bg-primary) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-md) !important;
+    transition: all 0.2s ease !important;
+    
+    &:hover {
+      border-color: var(--color-border-light) !important;
+      background-color: var(--color-bg-tertiary) !important;
+    }
+  }
+  
+  &.mat-focused .mat-mdc-text-field-wrapper {
+    border-color: var(--color-primary) !important;
+    background-color: var(--color-bg-tertiary) !important;
+    box-shadow: 0 0 0 3px var(--color-primary-light) !important;
+  }
+  
+  .mat-mdc-floating-label {
+    color: var(--color-text-secondary) !important;
+    font-weight: var(--font-weight-medium) !important;
+    
+    &.mdc-floating-label--float-above {
+      color: var(--color-primary) !important;
+    }
+  }
+  
+  .mat-mdc-input-element {
+    color: var(--color-text-primary) !important;
+    font-size: var(--font-size-base) !important;
+  }
+  
+  .mat-mdc-form-field-hint,
+  .mat-mdc-form-field-error {
+    font-size: var(--font-size-xs) !important;
+  }
+  
+  .mat-mdc-form-field-hint {
+    color: var(--color-text-tertiary) !important;
+  }
+  
+  .mat-mdc-form-field-error {
+    color: var(--color-danger) !important;
+  }
+}
+
+// Actions du formulaire
+.actions-formulaire {
+  padding: var(--space-6) var(--space-8) !important;
+  background-color: var(--color-bg-secondary);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  button {
+    padding: var(--space-3) var(--space-6) !important;
+    border-radius: var(--radius-md) !important;
+    font-weight: var(--font-weight-semibold) !important;
+    font-size: var(--font-size-base) !important;
+    transition: all 0.2s ease !important;
+    
+    // Bouton retour
+    &[mat-button] {
+      color: var(--color-text-secondary) !important;
+      border: 1px solid var(--color-border) !important;
+      
+      &:hover {
+        background-color: var(--color-bg-tertiary) !important;
+        color: var(--color-text-primary) !important;
+      }
+    }
+    
+    // Bouton principal
+    &[mat-raised-button] {
+      background-color: var(--color-success) !important;
+      color: white !important;
+      
+      &:hover:not([disabled]) {
+        background-color: #059669 !important;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+      }
+      
+      &:disabled {
+        background-color: var(--color-text-tertiary) !important;
+        color: var(--color-text-secondary) !important;
+      }
+      
+      &.loading {
+        background-color: var(--color-warning) !important;
+      }
+    }
+  }
+}
+
+// États d'erreur
+.mat-mdc-form-field.mat-form-field-invalid {
+  .mat-mdc-text-field-wrapper {
+    border-color: var(--color-danger) !important;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .ajouter-produit-container {
+    padding: var(--space-4);
+  }
+  
+  mat-card-header {
+    padding: var(--space-6) var(--space-4) !important;
+    
+    mat-card-title {
+      font-size: var(--font-size-2xl) !important;
+    }
+  }
+  
+  mat-card-content {
+    padding: var(--space-6) var(--space-4) !important;
+  }
+  
+  .section-formulaire {
+    padding: var(--space-4);
+  }
+  
+  .champs-ligne {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  
+  .champ-petit,
+  .champ-moyen,
+  .champ-large,
+  .champ-extra-large {
+    flex: 1;
+    min-width: auto;
+  }
+  
+  .actions-formulaire {
+    padding: var(--space-4) !important;
+    flex-direction: column;
+    gap: var(--space-3);
+    
+    button {
+      width: 100%;
+    }
+  }
+}
+
+// Animation d'entrée
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ajouter-produit-container {
+  animation: slideInUp 0.5s ease-out;
+}
+
+.section-formulaire {
+  animation: slideInUp 0.4s ease-out;
+  
+  &:nth-child(1) { animation-delay: 0.1s; }
+  &:nth-child(2) { animation-delay: 0.2s; }
+  &:nth-child(3) { animation-delay: 0.3s; }
+  &:nth-child(4) { animation-delay: 0.4s; }
+}

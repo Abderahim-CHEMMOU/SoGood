@@ -1,0 +1,185 @@
+<div class="ajouter-produit-container">
+  <mat-card class="formulaire-card">
+    <mat-card-header>
+      <mat-card-title>➕ Ajouter un nouveau produit</mat-card-title>
+      <mat-card-subtitle>Remplissez les informations du produit</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="formulaireProduit" (ngSubmit)="onSubmit()" class="formulaire-produit">
+        
+        <!-- Section Informations de base -->
+        <div class="section-formulaire">
+          <h3>📋 Informations de base</h3>
+          
+          <div class="champs-ligne">
+            <mat-form-field appearance="outline" class="champ-large">
+              <mat-label>Nom du produit *</mat-label>
+              <input matInput formControlName="product_name" placeholder="Ex: Yaourt nature bio">
+              <mat-error *ngIf="estChampsInvalide('product_name')">
+                {{ obtenirMessageErreur('product_name') }}
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="champ-large">
+              <mat-label>Marque *</mat-label>
+              <input matInput formControlName="brands" placeholder="Ex: Danone">
+              <mat-error *ngIf="estChampsInvalide('brands')">
+                {{ obtenirMessageErreur('brands') }}
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="champs-ligne">
+            <mat-form-field appearance="outline" class="champ-moyen">
+              <mat-label>Quantité</mat-label>
+              <input matInput formControlName="quantity" placeholder="Ex: 125g">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="champ-large">
+              <mat-label>Catégories</mat-label>
+              <input matInput formControlName="categories_en" placeholder="Ex: Dairy products, Yogurts">
+            </mat-form-field>
+          </div>
+
+          <div class="champs-ligne">
+            <mat-form-field appearance="outline" class="champ-large">
+              <mat-label>Pays d'origine</mat-label>
+              <input matInput formControlName="countries_en" placeholder="Ex: France">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="champ-large">
+              <mat-label>Catégorie principale</mat-label>
+              <input matInput formControlName="main_category_en" placeholder="Ex: Yogurts">
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Section Informations nutritionnelles -->
+        <div class="section-formulaire">
+          <h3>🍎 Informations nutritionnelles (pour 100g)</h3>
+          
+          <div class="champs-ligne">
+            <mat-form-field appearance="outline" class="champ-petit">
+              <mat-label>Calories (kcal)</mat-label>
+              <input matInput type="number" formControlName="energy_kcal_100g" min="0" max="1000">
+              <mat-error *ngIf="estChampsInvalide('energy_kcal_100g')">
+                {{ obtenirMessageErreur('energy_kcal_100g') }}
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="champ-petit">
+              <mat-label>Protéines (g)</mat-label>
+              <input matInput type="number" formControlName="proteins_100g" min="0" max="100" step="0.1">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="champ-petit">
+              <mat-label>Glucides (g)</mat-label>
+              <input matInput type="number" formControlName="carbohydrates_100g" min="0" max="100" step="0.1">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="champ-petit">
+              <mat-label>Sucres (g)</mat-label>
+              <input matInput type="number" formControlName="sugars_100g" min="0" max="100" step="0.1">
+            </mat-form-field>
+          </div>
+
+          <div class="champs-ligne">
+            <mat-form-field appearance="outline" class="champ-petit">
+              <mat-label>Matières grasses (g)</mat-label>
+              <input matInput type="number" formControlName="fat_100g" min="0" max="100" step="0.1">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="champ-petit">
+              <mat-label>Graisses saturées (g)</mat-label>
+              <input matInput type="number" formControlName="saturated_fat_100g" min="0" max="100" step="0.1">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="champ-petit">
+              <mat-label>Fibres (g)</mat-label>
+              <input matInput type="number" formControlName="fiber_100g" min="0" max="100" step="0.1">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="champ-petit">
+              <mat-label>Sel (g)</mat-label>
+              <input matInput type="number" formControlName="salt_100g" min="0" max="50" step="0.01">
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Section Scores -->
+        <div class="section-formulaire">
+          <h3>📊 Scores nutritionnels et environnementaux</h3>
+          
+          <div class="champs-ligne">
+            <mat-form-field appearance="outline" class="champ-moyen">
+              <mat-label>Nutri-Score calculé par IA</mat-label>
+              <input matInput type="number" formControlName="nutriscore_score" min="-15" max="40" placeholder="Calculer par IA">
+              <mat-hint>De -15 (très bon) à 40 (très mauvais)</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="champ-moyen">
+              <mat-label>Eco-Score</mat-label>
+              <input matInput type="number" formControlName="ecoscore_score" min="0" max="100">
+              <mat-hint>De 0 à 100</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="champ-petit">
+              <mat-label>Grade Eco-Score</mat-label>
+              <mat-select formControlName="ecoscore_grade">
+                <mat-option value="a">A</mat-option>
+                <mat-option value="b">B</mat-option>
+                <mat-option value="c">C</mat-option>
+                <mat-option value="d">D</mat-option>
+                <mat-option value="e">E</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Section Additifs -->
+        <div class="section-formulaire">
+          <h3>⚗️ Additifs alimentaires</h3>
+          
+          <div class="champs-ligne">
+            <mat-form-field appearance="outline" class="champ-petit">
+              <mat-label>Nombre d'additifs</mat-label>
+              <input matInput type="number" formControlName="additives_n" min="0">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="champ-extra-large">
+              <mat-label>Liste des additifs</mat-label>
+              <input matInput formControlName="additives_en" placeholder="Ex: E140 - Chlorophylls, E330 - Citric acid">
+              <mat-hint>Séparez par des virgules</mat-hint>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Section Autres informations -->
+        <div class="section-formulaire">
+          <h3>🌍 Autres informations</h3>
+          
+          <mat-form-field appearance="outline" class="champ-extra-large">
+            <mat-label>Groupe alimentaire</mat-label>
+            <input matInput formControlName="food_groups_en" placeholder="Ex: Dairy products">
+          </mat-form-field>
+        </div>
+
+      </form>
+    </mat-card-content>
+
+    <mat-card-actions class="actions-formulaire">
+      <button mat-button type="button" (click)="retournerALaListe()" [disabled]="chargementEnCours">
+        ← Retour
+      </button>
+      
+      <button mat-raised-button color="primary" 
+              (click)="onSubmit()" 
+              [disabled]="chargementEnCours || formulaireProduit.invalid"
+              [class.loading]="chargementEnCours">
+        <span *ngIf="!chargementEnCours">✅ Ajouter le produit</span>
+        <span *ngIf="chargementEnCours">⏳ Ajout en cours...</span>
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

@@ -1,0 +1,48 @@
+<div class="favoris-container">
+  <div class="favoris-header">
+    <h1>❤️ Mes Favoris</h1>
+    <p class="favoris-subtitle" *ngIf="produitsFavoris.length > 0">
+      {{ produitsFavoris.length }} produit{{ produitsFavoris.length > 1 ? 's' : '' }} en favoris
+    </p>
+    <div class="favoris-actions">
+      
+      <button class="refresh-button" (click)="actualiserFavoris()">🔄 Actualiser</button>
+      <button class="clear-button" (click)="viderFavoris()">🗑️ Vider</button>
+    </div>
+  </div>
+  
+  <div class="favoris-content">
+    <div class="loading-state" *ngIf="chargementEnCours">
+      <div class="spinner"></div>
+      <p>Chargement des favoris...</p>
+    </div>
+    
+    <div class="produits-grid" *ngIf="!chargementEnCours && produitsFavoris.length > 0">
+      <app-composant-carte-produit 
+        *ngFor="let produit of produitsFavoris; trackBy: trackByProductId" 
+        [produit]="produit">
+      </app-composant-carte-produit>
+    </div>
+    
+    <div class="empty-state" *ngIf="!chargementEnCours && produitsFavoris.length === 0">
+      <div class="empty-icon">💔</div>
+      <h2>Aucun favori pour le moment</h2>
+      <p>Ajoutez des produits à vos favoris en cliquant sur le cœur !</p>
+      <div class="storage-debug" *ngIf="showDebugInfo">
+        <h3>Debug Storage (Mac):</h3>
+        <div class="debug-item">
+          <strong>localStorage direct:</strong> 
+          <code>{{ debugInfo.directStorage }}</code>
+        </div>
+        <div class="debug-item">
+          <strong>Cache service:</strong> 
+          <code>{{ debugInfo.cache }}</code>
+        </div>
+        <div class="debug-item">
+          <strong>Cookies:</strong> 
+          <code>{{ debugInfo.cookies }}</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

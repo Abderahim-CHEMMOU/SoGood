@@ -1,0 +1,19 @@
+<div class="produits-liste">
+  <h2>Produits</h2>
+  
+  <div class="produits-grid" *ngIf="produitsFiltres.length > 0">
+    <app-composant-carte-produit 
+      *ngFor="let produit of produitsFiltres" 
+      [produit]="produit">
+    </app-composant-carte-produit>
+  </div>
+  
+  <div class="empty-state" *ngIf="produitsFiltres.length === 0 && !chargementEnCours">
+    <p>Aucun produit trouvé.</p>
+  </div>
+  
+  <div class="loading-state" *ngIf="chargementEnCours">
+    <div class="spinner"></div>
+    <p>Chargement des produits...</p>
+  </div>
+</div>
