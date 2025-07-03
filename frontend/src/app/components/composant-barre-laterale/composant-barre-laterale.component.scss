@@ -4,6 +4,8 @@
   height: 100%;
   padding: var(--space-6) var(--space-4);
   background-color: var(--color-bg-secondary);
+
+
 }
 
 // Logo/Brand
@@ -14,6 +16,7 @@
   padding: var(--space-4) var(--space-2);
   margin-bottom: var(--space-8);
   border-bottom: 1px solid var(--color-border);
+  
   
   .brand-icon {
     width: 32px;
@@ -48,6 +51,7 @@
   overflow: hidden;
   transition: all 0.2s ease;
   cursor: pointer;
+    margin-bottom: var(--space-8);
   
   &:hover {
     background-color: var(--color-bg-elevated);
