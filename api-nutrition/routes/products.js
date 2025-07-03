@@ -10,7 +10,12 @@ router.get('/search', authMiddleware, ProductController.searchProducts);
 router.get('/controversial', authMiddleware, ProductController.getControversialProducts);
 router.get('/nutriscore/range', authMiddleware, ProductController.getProductsByNutriscoreRange);
 router.get('/nutriscore/:score', authMiddleware, ProductController.getProductsByNutriscore);
-router.post('/', authMiddleware, ProductController.createProduct);
-router.get('/:id', authMiddleware,ProductController.getProductById);
+
+// 🆕 NOUVELLE ROUTE : Prédiction NutriScore avec API FastAPI
+router.post('/', authMiddleware, ProductController.predictNutriscore);
+
+// router.post('/', authMiddleware, ProductController.createProduct);
+router.get('/:id', authMiddleware, ProductController.getProductById);
 router.delete('/:id', authMiddleware, adminMiddleware, ProductController.deleteProduct);
+
 module.exports = router;

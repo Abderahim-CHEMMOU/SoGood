@@ -1,300 +1,409 @@
+const axios = require('axios');
 const Product = require('../models/Product');
-const ProductDTO = require('../dto/ProductDTO');
+
+// Configuration de l'API FastAPI
+const FASTAPI_URL = process.env.FASTAPI_URL || 'http://fastapi-nutriscore:8000';
+const FASTAPI_TIMEOUT = process.env.FASTAPI_TIMEOUT || 10000;
 
 class ProductController {
-  
-  // GET /products - Liste paginée
+
+  // 🆕 POST /products/nutriscore/predict - Prédire le NutriScore avec FastAPI
+  static async predictNutriscore(req, res) {
+    try {
+      const {
+        name,
+        energy_100g,
+        fat_100g,
+        saturated_fat_100g,
+        sugars_100g,
+        salt_100g,
+        fiber_100g,
+        proteins_100g,
+        fruits_vegetables_nuts_100g,
+        category,
+        brand
+      } = req.body;
+
+      // 📋 Validation des champs obligatoires
+      const requiredFields = [
+        'name', 'energy_100g', 'fat_100g', 'saturated_fat_100g',
+        'sugars_100g', 'salt_100g', 'fiber_100g', 'proteins_100g',
+        'fruits_vegetables_nuts_100g'
+      ];
+
+      for (const field of requiredFields) {
+        if (req.body[field] === undefined || req.body[field] === null) {
+          return res.status(400).json({
+            error: `Le champ ${field} est obligatoire`,
+            field: field
+          });
+        }
+      }
+
+      // 🔢 Validation des valeurs numériques
+      const numericFields = [
+        'energy_100g', 'fat_100g', 'saturated_fat_100g', 'sugars_100g',
+        'salt_100g', 'fiber_100g', 'proteins_100g', 'fruits_vegetables_nuts_100g'
+      ];
+
+      for (const field of numericFields) {
+        if (isNaN(parseFloat(req.body[field])) || parseFloat(req.body[field]) < 0) {
+          return res.status(400).json({
+            error: `Le champ ${field} doit être un nombre positif`,
+            field: field,
+            value: req.body[field]
+          });
+        }
+      }
+
+      // 📦 Préparer les données pour l'API FastAPI
+      const fastApiData = {
+        name,
+        energy_100g: parseFloat(energy_100g),
+        fat_100g: parseFloat(fat_100g),
+        saturated_fat_100g: parseFloat(saturated_fat_100g),
+        sugars_100g: parseFloat(sugars_100g),
+        salt_100g: parseFloat(salt_100g),
+        fiber_100g: parseFloat(fiber_100g),
+        proteins_100g: parseFloat(proteins_100g),
+        fruits_vegetables_nuts_100g: parseFloat(fruits_vegetables_nuts_100g),
+        category: category || null,
+        brand: brand || null
+      };
+
+      console.log(`🔮 Prédiction NutriScore pour: ${name} (utilisateur: ${req.userId})`);
+
+      // 🚀 Appel à l'API FastAPI
+      const response = await axios.post(
+        `${FASTAPI_URL}/products/nutriscore`,
+        fastApiData,
+        {
+          timeout: FASTAPI_TIMEOUT,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      // 📊 Traitement de la réponse
+      const { nutriscore, id: fastapiId, created_at } = response.data;
+
+      // 🏷️ Catégoriser le NutriScore
+      let nutriscoreGrade;
+      let nutriscoreDescription;
+
+      if (nutriscore < 0) {
+        nutriscoreGrade = 'A+';
+        nutriscoreDescription = 'Excellent produit';
+      } else if (nutriscore < 3) {
+        nutriscoreGrade = 'A';
+        nutriscoreDescription = 'Très bon produit';
+      } else if (nutriscore < 7) {
+        nutriscoreGrade = 'B';
+        nutriscoreDescription = 'Bon produit';
+      } else if (nutriscore < 11) {
+        nutriscoreGrade = 'C';
+        nutriscoreDescription = 'Produit moyen';
+      } else if (nutriscore < 15) {
+        nutriscoreGrade = 'D';
+        nutriscoreDescription = 'Produit de qualité médiocre';
+      } else {
+        nutriscoreGrade = 'E';
+        nutriscoreDescription = 'Produit de très mauvaise qualité';
+      }
+
+      // 💾 Optionnel : Sauvegarder aussi dans votre base Node.js
+      // (vous pouvez commenter cette partie si vous ne voulez pas de doublon)
+
+      // 📤 Réponse enrichie
+      res.status(201).json({
+        success: true,
+        message: 'NutriScore prédit avec succès',
+        data: {
+          // Données d'origine
+          product: fastApiData,
+
+          // Résultats de prédiction
+          nutriscore: {
+            value: nutriscore,
+            grade: nutriscoreGrade,
+            description: nutriscoreDescription
+          },
+
+          // Métadonnées
+          fastapi_id: fastapiId,
+          predicted_at: created_at,
+          predicted_by_user: req.userId
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Erreur lors de la prédiction NutriScore:', error);
+
+      // 🚨 Gestion spécifique des erreurs d'API
+      if (error.code === 'ECONNREFUSED') {
+        return res.status(503).json({
+          error: 'Service de prédiction temporairement indisponible',
+          details: 'Impossible de contacter l\'API FastAPI'
+        });
+      }
+
+      if (error.response) {
+        // L'API FastAPI a répondu avec une erreur
+        return res.status(error.response.status || 500).json({
+          error: 'Erreur de prédiction',
+          details: error.response.data?.detail || error.response.data || 'Erreur inconnue',
+          api_status: error.response.status
+        });
+      }
+
+      if (error.code === 'ENOTFOUND') {
+        return res.status(503).json({
+          error: 'Service de prédiction non trouvé',
+          details: 'URL de l\'API FastAPI incorrecte'
+        });
+      }
+
+      // 🔄 Timeout
+      if (error.code === 'ECONNABORTED') {
+        return res.status(408).json({
+          error: 'Timeout de prédiction',
+          details: 'La prédiction a pris trop de temps'
+        });
+      }
+
+      // Erreur générique
+      res.status(500).json({
+        error: 'Erreur interne du serveur',
+        details: 'Une erreur inattendue s\'est produite lors de la prédiction'
+      });
+    }
+  }
+
+  // 📝 Méthodes existantes (à adapter selon votre modèle Product)
+
+  // GET /products - Récupérer tous les produits
   static async getAllProducts(req, res) {
     try {
       const page = parseInt(req.query.page) || 1;
-      const limit = 20;
+      const limit = parseInt(req.query.limit) || 20;
+      const skip = (page - 1) * limit;
+
       const products = await Product.find()
-        .skip((page - 1) * limit)
+        .sort({ created_at: -1 })
+        .skip(skip)
         .limit(limit);
 
-      res.json(products.map(p => new ProductDTO(p)));
-    } catch (error) {
-      console.error('Error getting products:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
+      const total = await Product.countDocuments();
 
-  // GET /products/search?name=
-  static async searchProducts(req, res) {
-    try {
-      const name = req.query.name?.toLowerCase();
-      if (!name) return res.status(400).json({ error: 'Missing query ?name=' });
-
-      const products = await Product.find({ 
-        name: { $regex: name, $options: 'i' } 
-      }).limit(20);
-      
-      res.json(products.map(p => new ProductDTO(p)));
-    } catch (error) {
-      console.error('Error searching products:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
-
-  // GET /products/controversial
-  static async getControversialProducts(req, res) {
-    try {
-      const results = await Product.aggregate([
-        {
-          $project: {
-            name: 1,
-            brand: 1,
-            additivesCount: { $size: "$additives" },
-            nutriscore_score: 1,
-            controversy_score: {
-              $add: [
-                { $size: "$additives" },
-                {
-                  $cond: {
-                    if: { $gt: ["$nutriscore_score", 10] },
-                    then: "$nutriscore_score",
-                    else: 0
-                  }
-                }
-              ]
-            }
-          }
-        },
-        { $sort: { controversy_score: -1 } },
-        { $limit: 20 }
-      ]);
-
-      res.json(results);
-    } catch (error) {
-      console.error("Error getting controversial products:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  }
-
-  // GET /products/nutriscore/range?min=&max=
-  static async getProductsByNutriscoreRange(req, res) {
-    try {
-      const minScore = parseFloat(req.query.min);
-      const maxScore = parseFloat(req.query.max);
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 20;
-      
-      if (isNaN(minScore) || isNaN(maxScore)) {
-        return res.status(400).json({ 
-          error: 'Invalid score range. Use ?min=X&max=Y' 
-        });
-      }
-      
-      if (minScore > maxScore) {
-        return res.status(400).json({ 
-          error: 'Min score cannot be greater than max score' 
-        });
-      }
-      
-      const products = await Product.find({
-        nutriscore_score: { $gte: minScore, $lte: maxScore }
-      })
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .sort({ nutriscore_score: 1, product_name: 1 });
-      
-      const totalProducts = await Product.countDocuments({
-        nutriscore_score: { $gte: minScore, $lte: maxScore }
-      });
-      
-      const totalPages = Math.ceil(totalProducts / limit);
-      
       res.json({
-        products: products.map(p => new ProductDTO(p)),
-        search_criteria: { min_nutriscore: minScore, max_nutriscore: maxScore },
+        success: true,
+        data: products,
         pagination: {
-          current_page: page,
-          total_pages: totalPages,
-          total_products: totalProducts,
-          products_per_page: limit,
-          has_next: page < totalPages,
-          has_previous: page > 1
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit)
         }
       });
     } catch (error) {
-      console.error('Error in nutriscore range search:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Erreur getAllProducts:', error);
+      res.status(500).json({ error: 'Erreur interne du serveur' });
     }
   }
 
-  // GET /products/nutriscore/:score
+  // GET /products/search - Rechercher des produits
+  static async searchProducts(req, res) {
+    try {
+      const { q, category, brand } = req.query;
+
+      if (!q || q.trim().length < 2) {
+        return res.status(400).json({
+          error: 'Le terme de recherche doit contenir au moins 2 caractères'
+        });
+      }
+
+      const searchQuery = {
+        $and: [
+          {
+            $or: [
+              { name: { $regex: q.trim(), $options: 'i' } },
+              { brand: { $regex: q.trim(), $options: 'i' } }
+            ]
+          }
+        ]
+      };
+
+      if (category) {
+        searchQuery.$and.push({ category: { $regex: category, $options: 'i' } });
+      }
+
+      if (brand) {
+        searchQuery.$and.push({ brand: { $regex: brand, $options: 'i' } });
+      }
+
+      const products = await Product.find(searchQuery).limit(50);
+
+      res.json({
+        success: true,
+        data: products,
+        count: products.length
+      });
+    } catch (error) {
+      console.error('Erreur searchProducts:', error);
+      res.status(500).json({ error: 'Erreur interne du serveur' });
+    }
+  }
+
+  // GET /products/controversial - Produits controversés
+  static async getControversialProducts(req, res) {
+    try {
+      // Exemple : produits avec un nutriscore élevé mais populaires
+      const products = await Product.find({
+        nutriscore: { $gt: 10 }
+      }).sort({ nutriscore: -1 }).limit(20);
+
+      res.json({
+        success: true,
+        data: products
+      });
+    } catch (error) {
+      console.error('Erreur getControversialProducts:', error);
+      res.status(500).json({ error: 'Erreur interne du serveur' });
+    }
+  }
+
+  // GET /products/nutriscore/range - Produits par gamme de nutriscore
+  static async getProductsByNutriscoreRange(req, res) {
+    try {
+      const { min = 0, max = 20 } = req.query;
+
+      const products = await Product.find({
+        nutriscore: {
+          $gte: parseFloat(min),
+          $lte: parseFloat(max)
+        }
+      }).sort({ nutriscore: 1 });
+
+      res.json({
+        success: true,
+        data: products,
+        range: { min: parseFloat(min), max: parseFloat(max) }
+      });
+    } catch (error) {
+      console.error('Erreur getProductsByNutriscoreRange:', error);
+      res.status(500).json({ error: 'Erreur interne du serveur' });
+    }
+  }
+
+  // GET /products/nutriscore/:score - Produits par score exact
   static async getProductsByNutriscore(req, res) {
     try {
       const score = parseFloat(req.params.score);
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 20;
-      
-      if (isNaN(score)) {
-        return res.status(400).json({ error: 'Invalid nutriscore score' });
-      }
-      
-      const products = await Product.find({ nutriscore_score: score })
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .sort({ product_name: 1 });
-      
-      const totalProducts = await Product.countDocuments({ nutriscore_score: score });
-      const totalPages = Math.ceil(totalProducts / limit);
-      
-      res.json({
-        products: products.map(p => new ProductDTO(p)),
-        pagination: {
-          current_page: page,
-          total_pages: totalPages,
-          total_products: totalProducts,
-          products_per_page: limit,
-          has_next: page < totalPages,
-          has_previous: page > 1
+      const tolerance = parseFloat(req.query.tolerance) || 0.5;
+
+      const products = await Product.find({
+        nutriscore: {
+          $gte: score - tolerance,
+          $lte: score + tolerance
         }
       });
-    } catch (error) {
-      console.error('Error in nutriscore search:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  }
 
-  // GET /products/:id
-  static async getProductById(req, res) {
-    try {
-      const product = await Product.findById(req.params.id).lean();
-      if (!product) return res.status(404).json({ error: 'Product not found' });
-      
-      const { _id, __v, ...productData } = product;
-      
       res.json({
-        id: _id,
-        ...productData
+        success: true,
+        data: products,
+        target_score: score,
+        tolerance: tolerance
       });
     } catch (error) {
-      console.error('Error getting product by ID:', error);
-      res.status(400).json({ error: 'Invalid ID' });
+      console.error('Erreur getProductsByNutriscore:', error);
+      res.status(500).json({ error: 'Erreur interne du serveur' });
     }
   }
 
-  // POST /products
+  // POST /products - Créer un produit
   static async createProduct(req, res) {
     try {
-      const {
-        product_name, brands, categories_en, energy_kcal_100g,
-        fat_100g, saturated_fat_100g, sugars_100g, salt_100g,
-        fiber_100g, proteins_100g, nutriscore_score,
-        // Autres champs...
-        generic_name, quantity, origins_en, countries_en,
-        traces_en, additives_n, additives_en, additives,
-        nutrition_score_fr_100g, ecoscore_score, ecoscore_grade,
-        food_groups_en, main_category_en, monounsaturated_fat_100g,
-        polyunsaturated_fat_100g, trans_fat_100g, cholesterol_100g,
-        carbohydrates_100g, sodium_100g, vitamin_a_100g,
-        vitamin_c_100g, potassium_100g, calcium_100g, iron_100g,
-        fruits_vegetables_nuts_estimate_from_ingredients_100g,
-        name, brand, categories, calories, protein_100g
-      } = req.body;
-
-      if (!product_name && !name) {
-        return res.status(400).json({ 
-          error: 'Product name is required (product_name or name)' 
-        });
-      }
-
-      const newProduct = new Product({
-        product_name: product_name || name,
-        generic_name, quantity,
-        brands: brands || brand,
-        categories_en: categories_en || categories,
-        origins_en, countries_en, traces_en,
-        additives_n, additives_en,
-        additives: Array.isArray(additives) ? additives : [],
-        nutriscore_score, nutrition_score_fr_100g,
-        ecoscore_score, ecoscore_grade,
-        food_groups_en, main_category_en,
-        energy_kcal_100g: energy_kcal_100g || calories,
-        fat_100g, saturated_fat_100g, monounsaturated_fat_100g,
-        polyunsaturated_fat_100g, trans_fat_100g, cholesterol_100g,
-        carbohydrates_100g, sugars_100g, fiber_100g,
-        proteins_100g: proteins_100g || protein_100g,
-        salt_100g, sodium_100g, vitamin_a_100g, vitamin_c_100g,
-        potassium_100g, calcium_100g, iron_100g,
-        fruits_vegetables_nuts_estimate_from_ingredients_100g,
-        // Compatibilité
-        name: product_name || name,
-        brand: brands || brand,
-        categories: categories_en || categories,
-        calories: energy_kcal_100g || calories,
-        protein_100g: proteins_100g || protein_100g,
+      const product = new Product({
+        ...req.body,
+        created_by: req.userId
       });
 
-      const savedProduct = await newProduct.save();
+      await product.save();
 
       res.status(201).json({
-        message: 'Product created successfully',
-        product: new ProductDTO(savedProduct)
+        success: true,
+        message: 'Produit créé avec succès',
+        data: product
       });
-
     } catch (error) {
-      console.error('Error creating product:', error);
-      
+      console.error('Erreur createProduct:', error);
+
       if (error.name === 'ValidationError') {
         return res.status(400).json({
-          error: 'Validation error',
+          error: 'Erreur de validation',
           details: Object.values(error.errors).map(err => err.message)
         });
       }
-      
-      res.status(500).json({ error: 'Internal server error' });
+
+      res.status(500).json({ error: 'Erreur interne du serveur' });
     }
   }
 
-  // DELETE /products/:id - Supprimer un produit (Admin uniquement)
-  static async deleteProduct(req, res) {
+  // GET /products/:id - Récupérer un produit par ID
+  static async getProductById(req, res) {
     try {
-      const productId = req.params.id;
-      
-      // Validation de l'ID
-      if (!productId || !productId.match(/^[0-9a-fA-F]{24}$/)) {
-        return res.status(400).json({ error: 'Invalid product ID format' });
-      }
+      const product = await Product.findById(req.params.id);
 
-      // Chercher le produit
-      const product = await Product.findById(productId);
-      
       if (!product) {
-        return res.status(404).json({ error: 'Product not found' });
+        return res.status(404).json({
+          error: 'Produit non trouvé'
+        });
       }
-
-      // Supprimer le produit
-      await Product.findByIdAndDelete(productId);
-
-      // Log de l'action (optionnel mais recommandé)
-      console.log(`🗑️  Product deleted by admin ${req.user.username}:`, {
-        id: product._id,
-        name: product.product_name || product.name,
-        deletedBy: req.user.email
-      });
 
       res.json({
-        message: 'Product deleted successfully',
-        deletedProduct: {
-          id: product._id,
-          name: product.product_name || product.name,
-          brand: product.brands || product.brand,
-          deletedAt: new Date().toISOString(),
-          deletedBy: req.user.username
-        }
+        success: true,
+        data: product
       });
-
     } catch (error) {
-      console.error('Error deleting product:', error);
-      
+      console.error('Erreur getProductById:', error);
+
       if (error.name === 'CastError') {
-        return res.status(400).json({ error: 'Invalid product ID' });
+        return res.status(400).json({
+          error: 'ID de produit invalide'
+        });
       }
-      
-      res.status(500).json({ error: 'Internal server error' });
+
+      res.status(500).json({ error: 'Erreur interne du serveur' });
+    }
+  }
+
+  // DELETE /products/:id - Supprimer un produit (admin seulement)
+  static async deleteProduct(req, res) {
+    try {
+      const product = await Product.findByIdAndDelete(req.params.id);
+
+      if (!product) {
+        return res.status(404).json({
+          error: 'Produit non trouvé'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Produit supprimé avec succès',
+        data: product
+      });
+    } catch (error) {
+      console.error('Erreur deleteProduct:', error);
+
+      if (error.name === 'CastError') {
+        return res.status(400).json({
+          error: 'ID de produit invalide'
+        });
+      }
+
+      res.status(500).json({ error: 'Erreur interne du serveur' });
     }
   }
 }
