@@ -1,0 +1,12 @@
+<mat-sidenav-container>
+  <mat-sidenav mode="side" opened>
+    <app-composant-barre-laterale (filtrerCategorie)="onFiltrerCategorie($event)"></app-composant-barre-laterale>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <div class="contenu-principal">
+      <app-composant-barre-recherche (recherche)="onRecherche($event)"></app-composant-barre-recherche>
+      <button mat-button color="warn" (click)="deconnecterUtilisateur()">Déconnexion</button>
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
