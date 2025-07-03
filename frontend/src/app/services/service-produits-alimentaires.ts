@@ -1,4 +1,3 @@
-// service-produits-alimentaires.ts - Correction pour s'adapter au backend
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, delay, map, throwError, tap } from 'rxjs';
@@ -306,6 +305,23 @@ export class ServiceProduitsAlimentaires {
     console.error('❌ Détails erreur:', error.error);
     
     return throwError(() => new Error(messageErreur));
+  }
+
+  /**
+   * Ajouter un produit (Admin uniquement)
+   */
+  ajouterProduit(produitData: any): Observable<any> {
+    console.log(`➕ Ajout d'un nouveau produit:`, produitData);
+    
+    return this.http.post<any>(`${this.API_BASE_URL}${environment.api.endpoints.products}`, produitData)
+      .pipe(
+        tap((response: any) => {
+          console.log('✅ Produit ajouté:', response);
+          // Invalider le cache après ajout
+          this.viderCacheProduits();
+        }),
+        catchError(this.gererErreurAPI.bind(this))
+      );
   }
 
   /**

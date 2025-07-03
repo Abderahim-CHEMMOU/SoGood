@@ -18,12 +18,22 @@
         <div class="header-actions">
           <!-- Bouton conditionnel selon l'état de connexion -->
           <ng-container *ngIf="utilisateurConnecte$ | async as utilisateur; else boutonConnexion">
-            <!-- Afficher le nom d'utilisateur et bouton déconnexion -->
+            <!-- Afficher le nom d'utilisateur et boutons pour admin/user -->
             <div class="user-info">
               <span class="welcome-text">Bonjour, <strong>{{ utilisateur.username }}</strong></span>
-              <button mat-raised-button color="warn" class="disconnect-btn" (click)="deconnecterUtilisateur()">
-                🚪 Déconnexion
-              </button>
+              <div class="user-actions">
+                <!-- Bouton Ajouter produit (Admin uniquement) -->
+                <button mat-raised-button color="accent" class="add-product-btn" 
+                        *ngIf="utilisateur.role === 'admin'"
+                        (click)="allerVersAjoutProduit()">
+                  ➕ Ajouter produit
+                </button>
+                
+                <!-- Bouton Déconnexion -->
+                <button mat-raised-button color="warn" class="disconnect-btn" (click)="deconnecterUtilisateur()">
+                  🚪 Déconnexion
+                </button>
+              </div>
             </div>
           </ng-container>
           
