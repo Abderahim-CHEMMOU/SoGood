@@ -1,3 +1,4 @@
+<!-- src/app/components/composant-detail-produit/composant-detail-produit.component.html -->
 <div class="detail-container">
   <ng-container *ngIf="produit$ | async as produit; else pasDeProduit">
     <mat-card class="product-detail-card">
@@ -54,6 +55,83 @@
 
       <mat-card-content class="product-content">
         
+        <!-- Section Analyse IA -->
+        <mat-expansion-panel class="info-panel ia-analysis-panel" [expanded]="true">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              🤖 Analyse nutritionnelle par IA
+            </mat-panel-title>
+            <mat-panel-description>
+              Analyse détaillée générée par DeepSeek
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          
+          <div class="ia-analysis-container">
+            <!-- État de chargement -->
+            <div *ngIf="chargementAnalyseIA" class="ia-loading">
+              <mat-spinner diameter="30"></mat-spinner>
+              <p>Analyse en cours par l'IA...</p>
+            </div>
+            
+            <!-- Contenu de l'analyse -->
+            <div *ngIf="!chargementAnalyseIA && analyseIA" class="ia-content">
+              <!-- Recommandation principale -->
+              <div class="ia-recommendation" 
+                   [style.background-color]="obtenirCouleurRecommandation(analyseIA.recommandation)">
+                <span class="recommendation-icon">{{ obtenirIconeRecommandation(analyseIA.recommandation) }}</span>
+                <span class="recommendation-text">{{ analyseIA.recommandation | titlecase }}</span>
+              </div>
+              
+              <!-- Analyse détaillée -->
+              <div class="ia-analysis-text">
+                <h5>📝 Analyse détaillée</h5>
+                <p>{{ analyseIA.analyse }}</p>
+              </div>
+              
+              <!-- Points forts -->
+              <div class="ia-points-section" *ngIf="analyseIA.pointsForts.length > 0">
+                <h5>✅ Points forts</h5>
+                <ul class="points-list positive">
+                  <li *ngFor="let point of analyseIA.pointsForts">{{ point }}</li>
+                </ul>
+              </div>
+              
+              <!-- Points faibles -->
+              <div class="ia-points-section" *ngIf="analyseIA.pointsFaibles.length > 0">
+                <h5>⚠️ Points d'attention</h5>
+                <ul class="points-list negative">
+                  <li *ngFor="let point of analyseIA.pointsFaibles">{{ point }}</li>
+                </ul>
+              </div>
+              
+              <!-- Conseil -->
+              <div class="ia-conseil">
+                <h5>💡 Conseil personnalisé</h5>
+                <p class="conseil-text">{{ analyseIA.conseil }}</p>
+              </div>
+              
+              <!-- Actions -->
+              <div class="ia-actions">
+                <button mat-button (click)="actualiserAnalyseIA()" 
+                        [disabled]="chargementAnalyseIA">
+                  🔄 Actualiser l'analyse
+                </button>
+                <span class="ia-timestamp">
+                  Analysé le {{ analyseIA.timestamp | date:'dd/MM/yyyy à HH:mm' }}
+                </span>
+              </div>
+            </div>
+            
+            <!-- État d'erreur -->
+            <div *ngIf="!chargementAnalyseIA && !analyseIA" class="ia-error">
+              <p>❌ Impossible de charger l'analyse IA</p>
+              <button mat-button color="primary" (click)="chargerAnalyseIA()">
+                🔄 Réessayer
+              </button>
+            </div>
+          </div>
+        </mat-expansion-panel>
+
         <!-- Section Informations nutritionnelles -->
         <mat-expansion-panel class="info-panel" [expanded]="true">
           <mat-expansion-panel-header>

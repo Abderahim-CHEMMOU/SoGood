@@ -1,4 +1,3 @@
-// composant-detail-produit.component.ts - Version corrigée avec détails complets
 import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -6,8 +5,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ServiceProduitsAlimentaires } from '../../services/service-produits-alimentaires';
 import { ServiceAuthentificationUtilisateur } from '../../services/service-authentification-utilisateur';
+import { ServiceIADeepSeek, AnalyseIA } from '../../services/service-ia-deepseek.service';
 import { ProduitAlimentaireDetailDTO } from '../../models/produit-alimentaire.dto';
 import { CommonModule } from '@angular/common';
 import { Observable, of } from 'rxjs';
@@ -16,7 +17,7 @@ import { LikeService } from '../../services/like.service';
 @Component({
   selector: 'app-composant-detail-produit',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, MatIconModule, MatExpansionModule, CommonModule],
+  imports: [MatCardModule, MatButtonModule, MatIconModule, MatExpansionModule, MatProgressSpinnerModule, CommonModule],
   templateUrl: './composant-detail-produit.component.html',
   styleUrls: ['./composant-detail-produit.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -25,6 +26,8 @@ export class ComposantDetailProduit implements OnInit {
   produit$: Observable<ProduitAlimentaireDetailDTO | null>;
   isLiked = false;
   estAdmin = false;
+  analyseIA: AnalyseIA | null = null;
+  chargementAnalyseIA = false;
   private currentProduct: ProduitAlimentaireDetailDTO | null = null;
 
   constructor(
@@ -33,7 +36,8 @@ export class ComposantDetailProduit implements OnInit {
     private serviceProduits: ServiceProduitsAlimentaires,
     private authService: ServiceAuthentificationUtilisateur,
     private likeService: LikeService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private serviceIA: ServiceIADeepSeek
   ) {
     console.log('ComposantDetailProduit: Initialisation');
     const id = this.route.snapshot.paramMap.get('id');
@@ -50,6 +54,63 @@ export class ComposantDetailProduit implements OnInit {
     }
   }
 
+  chargerAnalyseIA() {
+    if (!this.currentProduct) return;
+    
+    console.log(`🤖 Chargement de l'analyse IA pour: ${this.currentProduct.name}`);
+    this.chargementAnalyseIA = true;
+    
+    this.serviceIA.analyserProduit(this.currentProduct).subscribe({
+      next: (analyse) => {
+        console.log('✅ Analyse IA reçue:', analyse);
+        this.analyseIA = analyse;
+        this.chargementAnalyseIA = false;
+      },
+      error: (error) => {
+        console.error('❌ Erreur analyse IA:', error);
+        this.chargementAnalyseIA = false;
+        this.snackBar.open('Erreur lors du chargement de l\'analyse IA', 'Fermer', {
+          duration: 3000,
+          panelClass: 'toaster-error'
+        });
+      }
+    });
+  }
+
+  actualiserAnalyseIA() {
+    if (!this.currentProduct) return;
+    
+    // Supprimer l'analyse du cache et recharger
+    this.serviceIA.supprimerAnalyseCache(this.currentProduct.id);
+    this.analyseIA = null;
+    this.chargerAnalyseIA();
+    
+    this.snackBar.open('Analyse IA actualisée', 'Fermer', {
+      duration: 2000,
+      panelClass: 'toaster-success'
+    });
+  }
+
+  obtenirCouleurRecommandation(recommandation: string): string {
+    switch (recommandation) {
+      case 'excellent': return '#00A651';
+      case 'bon': return '#85C442';
+      case 'modere': return '#FCDB02';
+      case 'eviter': return '#E63E11';
+      default: return '#6B7280';
+    }
+  }
+
+  obtenirIconeRecommandation(recommandation: string): string {
+    switch (recommandation) {
+      case 'excellent': return '⭐';
+      case 'bon': return '👍';
+      case 'modere': return '⚠️';
+      case 'eviter': return '❌';
+      default: return 'ℹ️';
+    }
+  }
+
   ngOnInit() {
     this.estAdmin = this.authService.estAdmin();
     
@@ -57,6 +118,8 @@ export class ComposantDetailProduit implements OnInit {
       this.currentProduct = produit;
       if (produit) {
         this.isLiked = this.likeService.isLiked(produit.id);
+        // Charger l'analyse IA automatiquement
+        this.chargerAnalyseIA();
       }
     });
 
