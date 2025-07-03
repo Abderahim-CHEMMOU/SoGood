@@ -24,22 +24,19 @@ export class CacheService {
   
   private readonly config: Required<CacheConfig> = {
     maxSize: 100,
-    defaultTTL: 5 * 60 * 1000, // 5 minutes par défaut
+    defaultTTL: 5 * 60 * 1000, 
     enablePersistence: true
   };
 
-  // Compteurs pour le hit rate (CORRECTION)
   private hitCount = 0;
   private missCount = 0;
   
-  // Flag pour éviter les boucles de persistence
   private isPersisting = false;
 
   constructor() {
     this.loadFromPersistence();
     this.startCleanupInterval();
     
-    // Sauvegarder périodiquement (CORRECTION: éviter les boucles)
     if (this.config.enablePersistence) {
       setInterval(() => {
         if (!this.isPersisting) {
@@ -49,14 +46,11 @@ export class CacheService {
     }
   }
 
-  /**
-   * Met en cache une valeur avec une clé (CORRECTION: vérifier la taille AVANT)
-   */
+
   set<T>(key: string, data: T, ttlMs?: number): void {
     const ttl = ttlMs || this.config.defaultTTL;
     const now = Date.now();
     
-    // CORRECTION: Vérifier la taille AVANT d'ajouter
     if (this.cache.size >= this.config.maxSize && !this.cache.has(key)) {
       this.evictOldest();
     }
@@ -73,34 +67,30 @@ export class CacheService {
     console.log(`Cache SET: ${key} (expires: ${new Date(entry.expiresAt).toLocaleTimeString()})`);
   }
 
-  /**
-   * Récupère une valeur du cache (CORRECTION: compteurs hit/miss)
-   */
+
   get<T>(key: string): T | null {
     const entry = this.cache.get(key) as CacheEntry<T> | undefined;
     
     if (!entry) {
-      this.missCount++; // CORRECTION: incrémenter miss
+      this.missCount++;
       console.log(`Cache MISS: ${key}`);
       return null;
     }
 
     // Vérifier l'expiration
     if (Date.now() > entry.expiresAt) {
-      this.missCount++; // CORRECTION: incrémenter miss
+      this.missCount++;
       console.log(`Cache EXPIRED: ${key}`);
       this.delete(key);
       return null;
     }
 
-    this.hitCount++; // CORRECTION: incrémenter hit
+    this.hitCount++;
     console.log(`Cache HIT: ${key}`);
     return entry.data;
   }
 
-  /**
-   * Vérifie si une clé existe et n'est pas expirée
-   */
+
   has(key: string): boolean {
     const entry = this.cache.get(key);
     if (!entry) return false;
@@ -113,9 +103,7 @@ export class CacheService {
     return true;
   }
 
-  /**
-   * Supprime une entrée du cache
-   */
+
   delete(key: string): void {
     const deleted = this.cache.delete(key);
     if (deleted) {
@@ -124,9 +112,7 @@ export class CacheService {
     }
   }
 
-  /**
-   * Vide tout le cache
-   */
+ 
   clear(): void {
     this.cache.clear();
     this.hitCount = 0;
@@ -136,11 +122,32 @@ export class CacheService {
     if (this.config.enablePersistence) {
       try {
         localStorage.removeItem('nutritracker_cache');
+        console.log('🗑️ localStorage nutritracker_cache supprimé');
       } catch (error) {
         console.warn('Erreur lors de la suppression du cache persistant:', error);
       }
     }
     console.log('Cache CLEARED');
+  }
+
+  
+  deleteFromPersistence(key: string): void {
+    if (!this.config.enablePersistence) return;
+    
+    try {
+      const serialized = localStorage.getItem('nutritracker_cache');
+      if (serialized) {
+        const entries = JSON.parse(serialized) as [string, CacheEntry<any>][];
+        const filteredEntries = entries.filter(([k]) => k !== key);
+        
+        if (filteredEntries.length !== entries.length) {
+          localStorage.setItem('nutritracker_cache', JSON.stringify(filteredEntries));
+          console.log(`🗑️ Clé ${key} supprimée du localStorage`);
+        }
+      }
+    } catch (error) {
+      console.warn('Erreur lors de la suppression spécifique du localStorage:', error);
+    }
   }
 
   /**
@@ -158,14 +165,15 @@ export class CacheService {
     );
   }
 
-  /**
-   * Invalidation de cache par pattern
-   */
+
   invalidatePattern(pattern: string): void {
     const regex = new RegExp(pattern);
     const keysToDelete = Array.from(this.cache.keys()).filter(key => regex.test(key));
     
-    keysToDelete.forEach(key => this.cache.delete(key));
+    keysToDelete.forEach(key => {
+      this.cache.delete(key);
+      this.deleteFromPersistence(key);
+    });
     
     if (keysToDelete.length > 0) {
       this.emitCacheChange();
@@ -174,7 +182,7 @@ export class CacheService {
   }
 
   /**
-   * Statistiques du cache (CORRECTION: calcul hit rate)
+   * Statistiques du cache
    */
   getStats(): {
     size: number;
@@ -200,7 +208,7 @@ export class CacheService {
   }
 
   /**
-   * Calcul du hit rate (CORRECTION)
+   * Calcul du hit rate
    */
   private calculateHitRate(): number {
     const total = this.hitCount + this.missCount;
@@ -208,7 +216,7 @@ export class CacheService {
   }
 
   /**
-   * Émet les changements du cache (CORRECTION: éviter les boucles)
+   * Émet les changements du cache
    */
   private emitCacheChange(): void {
     if (!this.isPersisting) {
@@ -232,6 +240,7 @@ export class CacheService {
 
     if (oldestKey) {
       this.cache.delete(oldestKey);
+      this.deleteFromPersistence(oldestKey);
       console.log(`Cache EVICTED oldest: ${oldestKey}`);
     }
   }
@@ -249,7 +258,10 @@ export class CacheService {
       }
     }
 
-    expiredKeys.forEach(key => this.cache.delete(key));
+    expiredKeys.forEach(key => {
+      this.cache.delete(key);
+      this.deleteFromPersistence(key);
+    });
     
     if (expiredKeys.length > 0) {
       this.emitCacheChange();
@@ -265,7 +277,7 @@ export class CacheService {
   }
 
   /**
-   * Sauvegarde dans localStorage (CORRECTION: gestion d'erreurs)
+   * Sauvegarde dans localStorage
    */
   private saveToPersistence(): void {
     if (!this.config.enablePersistence || this.isPersisting) return;
@@ -279,12 +291,10 @@ export class CacheService {
     } catch (error) {
       console.warn('Erreur lors de la sauvegarde du cache:', error);
       
-      // Si localStorage est plein, vider le cache et réessayer
       if (error && typeof error === 'object' && 'name' in error && (error as any).name === 'QuotaExceededError') {
         console.log('Quota localStorage dépassé, nettoyage du cache...');
         this.cleanup();
         
-        // Réessayer avec moins d'entrées
         try {
           const limitedEntries = Array.from(this.cache.entries()).slice(0, 50);
           const serialized = JSON.stringify(limitedEntries);
@@ -300,7 +310,7 @@ export class CacheService {
   }
 
   /**
-   * Charge depuis localStorage (CORRECTION: gestion d'erreurs)
+   * Charge depuis localStorage
    */
   private loadFromPersistence(): void {
     if (!this.config.enablePersistence) return;
@@ -311,7 +321,6 @@ export class CacheService {
         const entries = JSON.parse(serialized) as [string, CacheEntry<any>][];
         const now = Date.now();
         
-        // Filtrer les entrées expirées et valider les données
         const validEntries = entries.filter(([key, entry]) => {
           if (!entry || typeof entry !== 'object') return false;
           if (!entry.expiresAt || !entry.timestamp) return false;
@@ -323,7 +332,6 @@ export class CacheService {
         
         console.log(`Cache LOADED: ${validEntries.length} entries from persistence`);
         
-        // Si on a filtré des entrées, sauvegarder la version nettoyée
         if (validEntries.length < entries.length) {
           setTimeout(() => this.saveToPersistence(), 1000);
         }

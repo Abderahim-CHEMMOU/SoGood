@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,6 +9,7 @@ import { ServiceAuthentificationUtilisateur } from '../../services/service-authe
 import { ServiceProduitsAlimentaires } from '../../services/service-produits-alimentaires';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-composant-carte-produit',
@@ -18,32 +19,47 @@ import { Router } from '@angular/router';
   styleUrls: ['./composant-carte-produit.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ComposantCarteProduit implements OnInit {
+export class ComposantCarteProduit implements OnInit, OnDestroy {
   @Input() produit!: ProduitAlimentaireDTO;
   isLiked = false;
   estAdmin = false;
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private router: Router,
     private likeService: LikeService,
     private authService: ServiceAuthentificationUtilisateur,
     private produitService: ServiceProduitsAlimentaires,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
     this.isLiked = this.likeService.isLiked(this.produit.id);
     this.estAdmin = this.authService.estAdmin();
     
-    // S'abonner aux changements de likes
-    this.likeService.likedProducts$.subscribe(likedProducts => {
+    console.log(`🏷️ Produit ${this.produit.name} - État initial liked: ${this.isLiked}`);
+    
+    const likesSubscription = this.likeService.likedProducts$.subscribe(likedProducts => {
+      const wasLiked = this.isLiked;
       this.isLiked = likedProducts.includes(this.produit.id);
+      
+      if (wasLiked !== this.isLiked) {
+        console.log(`❤️ Produit ${this.produit.name} - Changement d'état: ${wasLiked} → ${this.isLiked}`);
+        this.cdr.detectChanges();
+      }
     });
     
-    // S'abonner aux changements d'authentification pour mettre à jour le statut admin
-    this.authService.utilisateurConnecte$.subscribe(user => {
+    const authSubscription = this.authService.utilisateurConnecte$.subscribe(user => {
       this.estAdmin = user ? user.role === 'admin' : false;
+      this.cdr.detectChanges();
     });
+    
+    this.subscriptions.push(likesSubscription, authSubscription);
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   obtenirCouleurNutriScore(): string {
@@ -57,12 +73,16 @@ export class ComposantCarteProduit implements OnInit {
   }
 
   toggleLike(event: Event) {
-    event.stopPropagation(); // Empêche la navigation vers le détail
+    event.stopPropagation(); 
+    
+    console.log(`💫 Toggle like pour ${this.produit.name} (${this.produit.id}) - État actuel: ${this.isLiked}`);
+    
     this.likeService.toggleLike(this.produit.id, this.produit.name);
+    
   }
 
   supprimerProduit(event: Event) {
-    event.stopPropagation(); // Empêche la navigation vers le détail
+    event.stopPropagation();
     
     if (!this.estAdmin) {
       this.snackBar.open('Accès refusé : privilèges administrateur requis', 'Fermer', {
@@ -72,7 +92,6 @@ export class ComposantCarteProduit implements OnInit {
       return;
     }
 
-    // Demander confirmation
     if (confirm(`Êtes-vous sûr de vouloir supprimer le produit "${this.produit.name}" ?\n\nCette action est irréversible.`)) {
       console.log(`🗑️ Suppression confirmée pour: ${this.produit.name} (${this.produit.id})`);
       
@@ -85,8 +104,6 @@ export class ComposantCarteProduit implements OnInit {
             panelClass: 'toaster-success'
           });
           
-          // Recharger la liste des produits après suppression
-          // Emettre un événement pour recharger la liste ou rafraîchir la page
           window.location.reload();
         },
         error: (error) => {
@@ -111,7 +128,7 @@ export class ComposantCarteProduit implements OnInit {
   }
 
   naviguerVersDetails() {
-    console.log('Navigation vers produit:', this.produit.id);
+    console.log('🔍 Navigation vers produit:', this.produit.id);
     this.router.navigate(['/produit', this.produit.id]);
   }
 }
