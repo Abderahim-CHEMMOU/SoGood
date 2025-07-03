@@ -1,0 +1,4 @@
+<mat-form-field appearance="outline" class="champ-recherche-produit" aria-label="Rechercher un produit alimentaire">
+  <mat-label>Rechercher un produit</mat-label>
+  <input matInput [(ngModel)]="termeRecherche" (ngModelChange)="onChangementRecherche($event)" placeholder="Ex: Chocolat">
+</mat-form-field>
