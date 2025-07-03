@@ -44,13 +44,28 @@ export class ComposantLayout implements OnInit, OnDestroy {
     this.utilisateurConnecte$ = this.authService.utilisateurConnecte$;
     
     // Détecter les changements pour le OnPush
-    const authSub = this.utilisateurConnecte$.subscribe(() => {
+    const authSub = this.utilisateurConnecte$.subscribe((user) => {
+      // Vérifier que l'utilisateur est bien connecté (protection supplémentaire)
+      if (!user) {
+        console.log('❌ Utilisateur déconnecté détecté dans le layout, redirection');
+        this.router.navigate(['/authentification']);
+      }
       this.cdr.detectChanges();
     });
     this.subscriptions.push(authSub);
   }
 
   ngOnInit() {
+    // Vérification de sécurité au chargement
+    const user = this.authService.obtenirUtilisateurConnecte();
+    if (!user) {
+      console.log('⚠️ Layout chargé sans utilisateur connecté, redirection');
+      this.router.navigate(['/authentification']);
+      return;
+    }
+
+    console.log(`✅ Layout chargé pour l'utilisateur: ${user.username} (${user.role})`);
+
     // S'abonner aux changements de route pour gérer les produits en attente
     const routerSub = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
@@ -117,6 +132,14 @@ export class ComposantLayout implements OnInit, OnDestroy {
 
   allerVersAjoutProduit() {
     console.log('ComposantLayout: Navigation vers ajout produit');
+    
+    // Vérification supplémentaire côté component
+    if (!this.authService.estAdmin()) {
+      console.log('❌ Tentative d\'accès admin refusée');
+      this.router.navigate(['/']);
+      return;
+    }
+    
     this.router.navigate(['/ajouter-produit']);
   }
 
@@ -129,5 +152,10 @@ export class ComposantLayout implements OnInit, OnDestroy {
   obtenirNomUtilisateur(): string {
     const user = this.authService.obtenirUtilisateurConnecte();
     return user ? user.username : '';
+  }
+
+  // Méthode pour vérifier si l'utilisateur est admin
+  estAdmin(): boolean {
+    return this.authService.estAdmin();
   }
 }

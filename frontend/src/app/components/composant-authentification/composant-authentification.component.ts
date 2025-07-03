@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,7 +6,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { ServiceAuthentificationUtilisateur } from '../../services/service-authentification-utilisateur';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -17,7 +17,7 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./composant-authentification.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ComposantAuthentification {
+export class ComposantAuthentification implements OnInit {
   // Données de connexion
   emailConnexion = '';
   motDePasseConnexion = '';
@@ -32,12 +32,29 @@ export class ComposantAuthentification {
   chargementConnexion = false;
   chargementInscription = false;
 
+  // URL de retour après connexion
+  private returnUrl = '/';
+
   constructor(
     private authService: ServiceAuthentificationUtilisateur,
     private snackBar: MatSnackBar,
     private router: Router,
+    private route: ActivatedRoute,
     private cdr: ChangeDetectorRef
   ) {}
+
+  ngOnInit() {
+    // Vérifier si l'utilisateur est déjà connecté
+    if (this.authService.estConnecte()) {
+      console.log('✅ Utilisateur déjà connecté, redirection');
+      this.router.navigate(['/']);
+      return;
+    }
+
+    // Récupérer l'URL de retour depuis les paramètres de requête
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+    console.log('🔄 URL de retour configurée:', this.returnUrl);
+  }
 
   connecterUtilisateur() {
     if (!this.emailConnexion || !this.motDePasseConnexion) {
@@ -52,11 +69,15 @@ export class ComposantAuthentification {
       .subscribe({
         next: (response) => {
           console.log('✅ Connexion réussie:', response.user.username);
+          
           this.snackBar.open(`Bienvenue ${response.user.username} !`, 'Fermer', { 
             duration: 3000,
             panelClass: 'toaster-success'
           });
-          this.router.navigate(['/']);
+          
+          // Rediriger vers l'URL de retour ou vers l'accueil
+          console.log('🔄 Redirection vers:', this.returnUrl);
+          this.router.navigate([this.returnUrl]);
         },
         error: (error) => {
           console.error('❌ Erreur connexion:', error);
@@ -98,11 +119,15 @@ export class ComposantAuthentification {
     ).subscribe({
       next: (response) => {
         console.log('✅ Inscription réussie:', response.user.username);
+        
         this.snackBar.open(`Compte créé avec succès ! Bienvenue ${response.user.username} !`, 'Fermer', { 
           duration: 3000,
           panelClass: 'toaster-success'
         });
-        this.router.navigate(['/']);
+        
+        // Rediriger vers l'URL de retour ou vers l'accueil
+        console.log('🔄 Redirection vers:', this.returnUrl);
+        this.router.navigate([this.returnUrl]);
       },
       error: (error) => {
         console.error('❌ Erreur inscription:', error);
@@ -117,6 +142,8 @@ export class ComposantAuthentification {
   }
 
   retournerAccueil() {
+    // Permettre de retourner à l'accueil même sans être connecté
+    // (sera redirigé par le guard si nécessaire)
     this.router.navigate(['/']);
   }
 }
