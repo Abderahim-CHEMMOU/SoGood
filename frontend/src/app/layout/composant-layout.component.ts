@@ -158,4 +158,4 @@ export class ComposantLayout implements OnInit, OnDestroy {
   estAdmin(): boolean {
     return this.authService.estAdmin();
   }
-}
+} 
