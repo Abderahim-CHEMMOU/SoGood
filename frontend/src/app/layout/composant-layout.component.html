@@ -16,9 +16,23 @@
           <app-composant-barre-recherche (recherche)="onRecherche($event)"></app-composant-barre-recherche>
         </div>
         <div class="header-actions">
-          <button mat-raised-button color="warn" class="disconnect-btn" (click)="deconnecterUtilisateur()">
-            Déconnexion
-          </button>
+          <!-- Bouton conditionnel selon l'état de connexion -->
+          <ng-container *ngIf="utilisateurConnecte$ | async as utilisateur; else boutonConnexion">
+            <!-- Afficher le nom d'utilisateur et bouton déconnexion -->
+            <div class="user-info">
+              <span class="welcome-text">Bonjour, <strong>{{ utilisateur.username }}</strong></span>
+              <button mat-raised-button color="warn" class="disconnect-btn" (click)="deconnecterUtilisateur()">
+                🚪 Déconnexion
+              </button>
+            </div>
+          </ng-container>
+          
+          <!-- Template pour utilisateur non connecté -->
+          <ng-template #boutonConnexion>
+            <button mat-raised-button color="primary" class="connect-btn" (click)="allerVersConnexion()">
+              🔑 Connexion
+            </button>
+          </ng-template>
         </div>
       </div>
       
