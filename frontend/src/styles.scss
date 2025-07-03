@@ -1,0 +1,207 @@
+// Import Google Fonts
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+// Variables de thème unifié - Inspiration Notion/Linear
+:root {
+  // Palette de couleurs unifiée - Thème sombre moderne
+  --color-primary: #2b2b2b;
+  --color-primary-hover: #bf7600;
+  --color-primary-light: rgb(243, 243, 243);
+  
+  --color-secondary: #676262;
+  --color-secondary-hover: #dddcf1;
+  --color-secondary-light: rgba(198, 198, 225, 0.343);
+  
+  --color-accent: #F59E0B;
+  --color-danger: #EF4444;
+  --color-warning: #F59E0B;
+  --color-success: #10B981;
+  
+  // Couleurs neutres - Thème sombre cohérent
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #ffffff;
+  --color-bg-tertiary: #faf7f3e2;
+  --color-bg-elevated: #fefefe;
+  
+  --color-text-primary: #777070;
+  --color-text-secondary: #A3A3A3;
+  --color-text-tertiary: #737373;
+  
+  --color-border: #404040;
+  --color-border-light: #525252;
+  
+  // Espacements cohérents
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  
+  // Border radius cohérents
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  
+  // Ombres cohérentes
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+  
+  // Typography
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+}
+
+// Reset global
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Classes utilitaires
+.text-primary { color: var(--color-text-primary); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-tertiary { color: var(--color-text-tertiary); }
+
+.bg-primary { background-color: var(--color-bg-primary); }
+.bg-secondary { background-color: var(--color-bg-secondary); }
+.bg-tertiary { background-color: var(--color-bg-tertiary); }
+.bg-elevated { background-color: var(--color-bg-elevated); }
+
+// Transitions communes
+.transition {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Scrollbar uniforme
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-light);
+}
+
+// Styles Material Design overrides pour cohérence
+.mat-mdc-card {
+  background-color: var(--color-bg-elevated) !important;
+  color: var(--color-text-primary) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.mat-mdc-button {
+  border-radius: var(--radius-md) !important;
+  font-family: var(--font-family) !important;
+  font-weight: var(--font-weight-medium) !important;
+  text-transform: none !important;
+}
+
+.mat-mdc-raised-button.mat-primary {
+  background-color: var(--color-primary) !important;
+  color: var(--color-bg-primary) !important;
+}
+
+.mat-mdc-raised-button.mat-warn {
+  background-color: var(--color-danger) !important;
+  color: white !important;
+}
+
+.mat-mdc-form-field {
+  .mat-mdc-text-field-wrapper {
+    background-color: var(--color-bg-secondary) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-md) !important;
+  }
+  
+  .mat-mdc-floating-label {
+    color: #8B4513 !important; // Marron foncé
+  }
+  
+  &.mat-focused {
+    .mat-mdc-text-field-wrapper {
+      border-color: #8B4513 !important; // Marron foncé
+    }
+    
+    .mat-mdc-floating-label {
+      color: #8B4513 !important; // Marron foncé
+    }
+  }
+  
+  .mat-mdc-input-element {
+    color: #8B4513 !important; // Marron foncé
+    caret-color: #8B4513 !important; // Curseur marron
+  }
+  
+  .mat-mdc-form-field-outline {
+    display: none !important;
+  }
+}
+
+.mat-drawer-container {
+  background-color: var(--color-bg-primary) !important;
+}
+
+.mat-drawer {
+  background-color: var(--color-bg-secondary) !important;
+  border-right: 1px solid var(--color-border) !important;
+}
+
+.mat-mdc-tab-group {
+  background-color: var(--color-bg-elevated) !important;
+  
+  .mat-mdc-tab-header {
+    background-color: var(--color-bg-secondary) !important;
+    border-bottom: 1px solid var(--color-border) !important;
+  }
+  
+  .mat-mdc-tab {
+    color: var(--color-text-secondary) !important;
+    
+    &.mdc-tab--active {
+      color: var(--color-primary) !important;
+    }
+  }
+  
+  .mat-mdc-tab-ink-bar {
+    background-color: var(--color-primary) !important;
+  }
+}

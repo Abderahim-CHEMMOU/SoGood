@@ -1,0 +1,17 @@
+<div class="barre-laterale">
+  <!-- Section Favoris en premier -->
+  <div class="favoris-section" (click)="naviguerVersFavoris()">
+    <h3 class="clickable">Mes Favoris</h3>
+  </div>
+  
+  <!-- Sections de filtrage -->
+  <div class="section" (click)="filtrerParCategorie('sains')">
+    <h3 class="clickable">Produits Sains (A, B)</h3>
+  </div>
+  <div class="section" (click)="filtrerParCategorie('moderes')">
+    <h3 class="clickable">Produits Modérés (C)</h3>
+  </div>
+  <div class="section" (click)="filtrerParCategorie('dangereux')">
+    <h3 class="clickable">Produits Dangereux (D, E)</h3>
+  </div>
+</div>
