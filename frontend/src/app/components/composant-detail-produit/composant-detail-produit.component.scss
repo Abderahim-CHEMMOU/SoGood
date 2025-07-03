@@ -1,19 +1,194 @@
+.detail-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--space-6);
+}
+
 mat-card {
-  max-width: 500px;
-  margin: 20px auto;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: var(--color-bg-elevated) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: var(--radius-xl) !important;
+  box-shadow: var(--shadow-lg) !important;
+  overflow: hidden;
+  position: relative;
 }
 
 mat-card-header {
+  padding: var(--space-8) var(--space-6) var(--space-6) !important;
   text-align: center;
+  background: linear-gradient(135deg, var(--color-bg-secondary), var(--color-bg-tertiary));
+  border-bottom: 1px solid var(--color-border);
+  
+  .mat-mdc-card-title {
+    font-size: var(--font-size-3xl) !important;
+    font-weight: var(--font-weight-bold) !important;
+    color: var(--color-text-primary) !important;
+    margin-bottom: var(--space-3) !important;
+    line-height: 1.2;
+  }
+  
+  .mat-mdc-card-subtitle {
+    font-size: var(--font-size-lg) !important;
+    font-weight: var(--font-weight-medium) !important;
+    color: var(--color-text-secondary) !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
 }
 
-mat-card-content p {
-  margin: 10px 0;
-  font-size: 1.1em;
+mat-card-content {
+  padding: var(--space-8) var(--space-6) !important;
+  
+  // Grille nutritionnelle
+  .nutrition-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+  }
+  
+  p {
+    background-color: var(--color-bg-secondary) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-md) !important;
+    padding: var(--space-4) !important;
+    margin: 0 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    transition: all 0.2s ease !important;
+    
+    &:hover {
+      background-color: var(--color-bg-tertiary) !important;
+      border-color: var(--color-border-light) !important;
+    }
+    
+    strong {
+      color: var(--color-text-primary) !important;
+      font-weight: var(--font-weight-semibold) !important;
+      font-size: var(--font-size-base) !important;
+    }
+    
+    // Valeurs
+    .value {
+      font-weight: var(--font-weight-bold);
+      font-size: var(--font-size-lg);
+      color: var(--color-primary);
+    }
+    
+    // Score spécial
+    &:last-child {
+      background: linear-gradient(135deg, var(--color-primary-light), var(--color-secondary-light)) !important;
+      border-color: var(--color-primary) !important;
+      
+      strong {
+        color: var(--color-primary) !important;
+      }
+    }
+  }
+}
+
+// Badge NutriScore géant
+.nutri-score-large {
+  position: absolute;
+  top: var(--space-6);
+  right: var(--space-6);
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-2xl);
+  color: white;
+  z-index: 2;
+  box-shadow: var(--shadow-lg);
+  
+  // Couleurs NutriScore
+  &.grade-a { background-color: #00A651; }
+  &.grade-b { background-color: #85C442; }
+  &.grade-c { background-color: #FCDB02; color: #000; }
+  &.grade-d { background-color: #FF8300; }
+  &.grade-e { background-color: #E63E11; }
 }
 
 mat-card-actions {
+  padding: var(--space-6) !important;
   text-align: center;
+  background-color: var(--color-bg-secondary);
+  border-top: 1px solid var(--color-border);
+  
+  button {
+    background-color: var(--color-primary) !important;
+    color: var(--color-bg-primary) !important;
+    border: none !important;
+    padding: var(--space-3) var(--space-8) !important;
+    border-radius: var(--radius-xl) !important;
+    font-weight: var(--font-weight-semibold) !important;
+    font-size: var(--font-size-base) !important;
+    transition: all 0.2s ease !important;
+    
+    &:hover {
+      background-color: var(--color-primary-hover) !important;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+  }
+}
+
+// Carte d'erreur
+.error-card {
+  text-align: center;
+  padding: var(--space-12) !important;
+  
+  mat-card-content p {
+    font-size: var(--font-size-lg) !important;
+    color: var(--color-text-secondary) !important;
+    margin-bottom: var(--space-6) !important;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .detail-container {
+    padding: var(--space-4);
+  }
+  
+  mat-card-header {
+    padding: var(--space-6) var(--space-4) !important;
+    
+    .mat-mdc-card-title {
+      font-size: var(--font-size-2xl) !important;
+    }
+  }
+  
+  mat-card-content {
+    padding: var(--space-6) var(--space-4) !important;
+    
+    .nutrition-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .nutri-score-large {
+    width: 60px;
+    height: 60px;
+    font-size: var(--font-size-lg);
+  }
+}
+
+// Animation d'entrée
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.detail-container {
+  animation: slideInUp 0.4s ease-out;
 }

@@ -44,4 +44,8 @@ export class ComposantAuthentification {
         error: () => this.snackBar.open('Erreur d\'inscription', 'Fermer', { duration: 3000 })
       });
   }
+
+  retournerAccueil() {
+  this.router.navigate(['/']);
+}
 }

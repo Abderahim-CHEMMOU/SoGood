@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
@@ -19,7 +19,7 @@ import { ProduitAlimentaireDTO } from '../models/produit-alimentaire.dto';
     RouterOutlet,
     ComposantBarreLaterale,
     ComposantBarreRecherche,
-],
+  ],
   templateUrl: './composant-layout.component.html',
   styleUrls: ['./composant-layout.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -28,7 +28,8 @@ export class ComposantLayout {
   constructor(
     private authService: ServiceAuthentificationUtilisateur,
     private router: Router,
-    private produitService: ProduitService
+    private produitService: ProduitService,
+    private cdr: ChangeDetectorRef
   ) {
     console.log('ComposantLayout chargé'); // Débogage
   }
@@ -36,11 +37,19 @@ export class ComposantLayout {
   onRecherche(resultats: ProduitAlimentaireDTO[]) {
     console.log('ComposantLayout: Recherche émise:', resultats); // Débogage
     this.produitService.mettreAJourProduitsFiltres(resultats);
+    // Naviguer vers la liste des produits si on est sur le détail
+    if (this.router.url.includes('/produit/')) {
+      this.router.navigate(['/']);
+    }
   }
 
   onFiltrerCategorie(produits: ProduitAlimentaireDTO[]) {
     console.log('ComposantLayout: Catégorie filtrée:', produits); // Débogage
     this.produitService.mettreAJourProduitsFiltres(produits);
+    // Naviguer vers la liste des produits si on est sur le détail
+    if (this.router.url.includes('/produit/')) {
+      this.router.navigate(['/']);
+    }
   }
 
   deconnecterUtilisateur() {

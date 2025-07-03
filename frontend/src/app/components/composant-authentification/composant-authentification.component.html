@@ -9,6 +9,9 @@
       <input matInput [(ngModel)]="motDePasseConnexion" type="password" aria-label="Mot de passe pour connexion">
     </mat-form-field>
     <button mat-raised-button color="primary" (click)="connecterUtilisateur()">Se connecter</button>
+    <button mat-button class="back-button" (click)="retournerAccueil()">
+  ← Retour à l'accueil
+</button>
   </mat-tab>
   <mat-tab label="Inscription">
     <mat-form-field appearance="outline">
@@ -20,5 +23,8 @@
       <input matInput [(ngModel)]="motDePasseInscription" type="password" aria-label="Mot de passe pour inscription">
     </mat-form-field>
     <button mat-raised-button color="primary" (click)="inscrireUtilisateur()">S'inscrire</button>
+    <button mat-button class="back-button" (click)="retournerAccueil()">
+  ← Retour à l'accueil
+</button>
   </mat-tab>
 </mat-tab-group>

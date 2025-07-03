@@ -1,12 +1,32 @@
-<mat-sidenav-container>
-  <mat-sidenav mode="side" opened>
-    <app-composant-barre-laterale (filtrerCategorie)="onFiltrerCategorie($event)"></app-composant-barre-laterale>
-  </mat-sidenav>
-  <mat-sidenav-content>
-    <div class="contenu-principal">
-      <app-composant-barre-recherche (recherche)="onRecherche($event)"></app-composant-barre-recherche>
-      <button mat-button color="warn" (click)="deconnecterUtilisateur()">Déconnexion</button>
-      <router-outlet></router-outlet>
-    </div>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+<div class="layout-container">
+  <mat-sidenav-container>
+    <mat-sidenav mode="side" opened>
+      <div class="brand">
+        <div class="brand-icon">🥗</div>
+        <div class="brand-text">SoGood</div>
+      </div>
+      <div class="nav-section">
+        <app-composant-barre-laterale (filtrerCategorie)="onFiltrerCategorie($event)"></app-composant-barre-laterale>
+      </div>
+    </mat-sidenav>
+    
+    <mat-sidenav-content>
+      <div class="header-container">
+        <div class="search-container">
+          <app-composant-barre-recherche (recherche)="onRecherche($event)"></app-composant-barre-recherche>
+        </div>
+        <div class="header-actions">
+          <button mat-raised-button color="warn" class="disconnect-btn" (click)="deconnecterUtilisateur()">
+            Déconnexion
+          </button>
+        </div>
+      </div>
+      
+      <div class="content-area">
+        <div class="content-wrapper">
+          <router-outlet></router-outlet>
+        </div>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

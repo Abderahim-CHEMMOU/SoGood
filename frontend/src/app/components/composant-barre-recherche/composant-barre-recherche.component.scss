@@ -1,4 +1,84 @@
 .champ-recherche-produit {
-  width: 50%;
-  margin: 20px auto;
+  width: 42rem;
+ 
+  
+  .mat-mdc-text-field-wrapper {
+    background-color: var(--color-bg-primary) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-xl) !important;
+    transition: all 0.2s ease !important;
+    height: 48px;
+    
+    &:hover {
+      border-color: var(--color-border-light) !important;
+      background-color: var(--color-bg-tertiary) !important;
+    }
+  }
+  
+  &.mat-focused .mat-mdc-text-field-wrapper {
+    border-color: var(--color-primary) !important;
+    background-color: var(--color-bg-tertiary) !important;
+    box-shadow: 0 0 0 3px var(--color-primary-light) !important;
+  }
+  
+  .mat-mdc-floating-label {
+    color: var(--color-text-secondary) !important;
+    font-size: var(--font-size-base) !important;
+    font-weight: var(--font-weight-normal) !important;
+    
+    &.mdc-floating-label--float-above {
+      color: var(--color-primary) !important;
+      font-size: var(--font-size-sm) !important;
+    }
+  }
+  
+  .mat-mdc-input-element {
+    color: var(--color-text-primary) !important;
+    font-size: var(--font-size-base) !important;
+    padding: var(--space-3) var(--space-4) !important;
+    caret-color: var(--color-primary) !important;
+    
+    &::placeholder {
+      color: var(--color-text-tertiary) !important;
+    }
+  }
+  
+  .mat-mdc-form-field-infix {
+    border: none !important;
+    padding: var(--space-2) 0 !important;
+    min-height: auto !important;
+  }
+  
+  .mat-mdc-form-field-outline {
+    display: none !important;
+  }
+}
+
+// Icône de recherche
+.search-icon {
+  position: absolute;
+  right: var(--space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-secondary);
+  font-size: 20px;
+  pointer-events: none;
+}
+
+// État de chargement
+.loading-spinner {
+  position: absolute;
+  right: var(--space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: translateY(-50%) rotate(360deg); }
 }
