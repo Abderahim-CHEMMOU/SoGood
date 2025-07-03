@@ -1,17 +1,23 @@
+<!-- composant-barre-laterale.component.html - Version avec ranges -->
 <div class="barre-laterale">
   <!-- Section Favoris en premier -->
   <div class="favoris-section" (click)="naviguerVersFavoris()">
-    <h3 class="clickable">Mes Favoris</h3>
+    <h3 class="clickable">❤️ Mes Favoris</h3>
   </div>
   
-  <!-- Sections de filtrage -->
+  <!-- Sections de filtrage avec ranges -->
   <div class="section" (click)="filtrerParCategorie('sains')">
-    <h3 class="clickable">Produits Sains (A, B)</h3>
+    <h3 class="clickable">✅ Produits Sains</h3>
+    <p class="range-info">NutriScore: -15 à 3</p>
   </div>
+  
   <div class="section" (click)="filtrerParCategorie('moderes')">
-    <h3 class="clickable">Produits Modérés (C)</h3>
+    <h3 class="clickable">⚠️ Produits Modérés</h3>
+    <p class="range-info">NutriScore: 4 à 11</p>
   </div>
+  
   <div class="section" (click)="filtrerParCategorie('dangereux')">
-    <h3 class="clickable">Produits Dangereux (D, E)</h3>
+    <h3 class="clickable">🚫 Produits Dangereux</h3>
+    <p class="range-info">NutriScore: 12 à 40</p>
   </div>
 </div>

@@ -1,28 +1,239 @@
 <div class="detail-container">
   <ng-container *ngIf="produit$ | async as produit; else pasDeProduit">
-    <mat-card [style.background-color]="obtenirCouleurNutriScore(produit)">
-      <button mat-icon-button class="like-button-detail" 
-              [class.liked]="isLiked" 
-              (click)="toggleLike()"
-              [attr.aria-label]="isLiked ? 'Retirer des favoris' : 'Ajouter aux favoris'">
-        <span class="like-icon">{{ isLiked ? '❤️' : '🤍' }}</span>
-      </button>
+    <mat-card class="product-detail-card">
       
-      <mat-card-header>
-        <mat-card-title>{{ produit.nom }}</mat-card-title>
-        <mat-card-subtitle>{{ produit.marque }}</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <p><strong>Calories:</strong> {{ produit.calories }} kcal</p>
-        <p><strong>Protéines:</strong> {{ produit.proteines }} g</p>
-        <p><strong>Sucres:</strong> {{ produit.sucres }} g</p>
-        <p><strong>Sel:</strong> {{ produit.sel }} g</p>
-        <p><strong>Graisses saturées:</strong> {{ produit.graissesSaturees }} g</p>
-        <p><strong>Fibres:</strong> {{ produit.fibres }} g</p>
-        <p *ngIf="produit.scoreNutriScore !== undefined"><strong>NutriScore:</strong> {{ produit.scoreNutriScore }}</p>
+      <!-- Header avec badges scores -->
+      <div class="product-header">
+        <div class="header-content">
+          <div class="product-info">
+            <h1 class="product-title">{{ produit.product_name || produit.name }}</h1>
+            <h2 class="product-brand">{{ produit.brands || produit.brand }}</h2>
+            <p class="product-quantity" *ngIf="produit.quantity">Quantité : {{ produit.quantity }}</p>
+          </div>
+          
+          <div class="scores-section" *ngIf="hasScores(produit)">
+            <!-- NutriScore Badge -->
+            <div class="score-badge nutri-score" 
+                 *ngIf="produit.nutriscore_score !== undefined"
+                 [style.background-color]="obtenirCouleurNutriScore(produit)">
+              <span class="score-label">Nutri-Score</span>
+              <span class="score-grade">{{ obtenirGradeNutriScore(produit.nutriscore_score) }}</span>
+              <span class="score-value">{{ produit.nutriscore_score }}</span>
+            </div>
+            
+            <!-- EcoScore Badge -->
+            <div class="score-badge eco-score" 
+                 *ngIf="produit.ecoscore_grade"
+                 [style.background-color]="obtenirCouleurEcoScore(produit.ecoscore_grade)">
+              <span class="score-label">Eco-Score</span>
+              <span class="score-grade">{{ produit.ecoscore_grade.toUpperCase() }}</span>
+              <span class="score-value" *ngIf="produit.ecoscore_score">{{ produit.ecoscore_score }}/100</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Bouton Like -->
+        <button mat-icon-button class="like-button-detail" 
+                [class.liked]="isLiked" 
+                (click)="toggleLike()"
+                [attr.aria-label]="isLiked ? 'Retirer des favoris' : 'Ajouter aux favoris'">
+          <span class="like-icon">{{ isLiked ? '❤️' : '🤍' }}</span>
+        </button>
+      </div>
+
+      <mat-card-content class="product-content">
+        
+        <!-- Section Informations nutritionnelles -->
+        <mat-expansion-panel class="info-panel" [expanded]="true">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              📊 Informations nutritionnelles (pour 100g)
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          
+          <div class="nutrition-grid">
+            <!-- Valeurs énergétiques -->
+            <div class="nutrition-category">
+              <h4>⚡ Énergie</h4>
+              <div class="nutrition-item">
+                <span class="label">Calories</span>
+                <span class="value">{{ getFormattedValue(produit.calories || produit.energy_kcal_100g, ' kcal') }}</span>
+              </div>
+            </div>
+
+            <!-- Macronutriments -->
+            <div class="nutrition-category">
+              <h4>🥩 Macronutriments</h4>
+              <div class="nutrition-item">
+                <span class="label">Protéines</span>
+                <span class="value">{{ getFormattedValue(produit.proteins_100g || produit.protein_100g || produit.protein, ' g') }}</span>
+              </div>
+              <div class="nutrition-item">
+                <span class="label">Glucides</span>
+                <span class="value">{{ getFormattedValue(produit.carbohydrates_100g, ' g') }}</span>
+              </div>
+              <div class="nutrition-item">
+                <span class="label">Sucres</span>
+                <span class="value">{{ getFormattedValue(produit.sugars_100g || produit.sugars, ' g') }}</span>
+              </div>
+              <div class="nutrition-item">
+                <span class="label">Matières grasses</span>
+                <span class="value">{{ getFormattedValue(produit.fat_100g, ' g') }}</span>
+              </div>
+              <div class="nutrition-item">
+                <span class="label">Graisses saturées</span>
+                <span class="value">{{ getFormattedValue(produit.saturated_fat_100g || produit.saturatedFat, ' g') }}</span>
+              </div>
+            </div>
+
+            <!-- Fibres et minéraux -->
+            <div class="nutrition-category">
+              <h4>🌾 Fibres & Minéraux</h4>
+              <div class="nutrition-item" *ngIf="produit.fiber_100g || produit.fiber">
+                <span class="label">Fibres</span>
+                <span class="value">{{ getFormattedValue(produit.fiber_100g || produit.fiber, ' g') }}</span>
+              </div>
+              <div class="nutrition-item">
+                <span class="label">Sel</span>
+                <span class="value">{{ getFormattedValue(produit.salt_100g || produit.salt, ' g') }}</span>
+              </div>
+              <div class="nutrition-item" *ngIf="produit.sodium_100g">
+                <span class="label">Sodium</span>
+                <span class="value">{{ getFormattedValue(produit.sodium_100g, ' g') }}</span>
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel>
+
+        <!-- Section Additifs (si présents) -->
+        <mat-expansion-panel class="info-panel" *ngIf="hasAdditives(produit)">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              ⚗️ Additifs alimentaires ({{ produit.additives_n || produit.additives?.length }})
+            </mat-panel-title>
+            <mat-panel-description>
+              {{ produit.additives_n || produit.additives?.length }} additif(s) détecté(s)
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          
+          <div class="additives-container">
+            <div class="additives-warning">
+              <p><strong>⚠️ Attention :</strong> Ce produit contient des additifs alimentaires. Certains peuvent avoir des effets indésirables chez les personnes sensibles.</p>
+            </div>
+            
+            <h5>Liste détaillée des additifs :</h5>
+            <div class="additives-detailed">
+              <div class="additive-item" *ngFor="let additive of produit.additives">
+                <span class="additive-code">{{ additive.split(' - ')[0] }}</span>
+                <span class="additive-name">{{ additive.split(' - ')[1] || additive }}</span>
+              </div>
+            </div>
+            
+            <div class="additives-summary" *ngIf="produit.additives_en">
+              <h5>Résumé :</h5>
+              <p>{{ produit.additives_en }}</p>
+            </div>
+          </div>
+        </mat-expansion-panel>
+
+        <!-- Section Catégories -->
+        <mat-expansion-panel class="info-panel" *ngIf="produit.categories_en || produit.categories">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              🏷️ Catégories de produit
+            </mat-panel-title>
+            <mat-panel-description>
+              Classification du produit
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          
+          <div class="categories-detailed">
+            <div class="category-hierarchy">
+              <h5>Hiérarchie des catégories :</h5>
+              <div class="category-path">
+                <span class="category-item" *ngFor="let category of formatCategories(produit.categories_en || produit.categories!); let last = last">
+                  {{ category }}
+                  <span *ngIf="!last" class="category-separator">→</span>
+                </span>
+              </div>
+            </div>
+            
+            <div class="category-details" *ngIf="produit.main_category_en || produit.food_groups_en">
+              <div class="detail-item" *ngIf="produit.main_category_en">
+                <strong>Catégorie principale :</strong> {{ produit.main_category_en }}
+              </div>
+              <div class="detail-item" *ngIf="produit.food_groups_en">
+                <strong>Groupe alimentaire :</strong> {{ produit.food_groups_en }}
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel>
+
+        <!-- Section Origine et informations générales -->
+        <mat-expansion-panel class="info-panel">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              🌍 Origine et informations générales
+            </mat-panel-title>
+            <mat-panel-description>
+              Provenance et caractéristiques du produit
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          
+          <div class="general-info">
+            <div class="info-grid">
+              <div class="info-item" *ngIf="produit.countries_en">
+                <span class="info-label">🌍 Pays d'origine</span>
+                <span class="info-value">{{ produit.countries_en }}</span>
+              </div>
+              
+              <div class="info-item" *ngIf="produit.quantity">
+                <span class="info-label">📦 Quantité</span>
+                <span class="info-value">{{ produit.quantity }}</span>
+              </div>
+              
+              <div class="info-item" *ngIf="produit.fruits_vegetables_nuts_estimate_from_ingredients_100g !== undefined">
+                <span class="info-label">🥬 Estimation fruits/légumes/noix</span>
+                <span class="info-value">{{ produit.fruits_vegetables_nuts_estimate_from_ingredients_100g }}%</span>
+              </div>
+              
+              <div class="info-item" *ngIf="produit.nutrition_score_fr_100g !== undefined">
+                <span class="info-label">📊 Score nutritionnel France</span>
+                <span class="info-value">{{ produit.nutrition_score_fr_100g }}</span>
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel>
+
+        <!-- Section Métadonnées -->
+        <mat-expansion-panel class="info-panel" *ngIf="produit.createdAt || produit.updatedAt">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              📅 Informations de base de données
+            </mat-panel-title>
+            <mat-panel-description>
+              Dates de création et modification
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          
+          <div class="metadata-info">
+            <div class="metadata-item" *ngIf="produit.createdAt">
+              <span class="metadata-label">Créé le :</span>
+              <span class="metadata-value">{{ produit.createdAt | date:'dd/MM/yyyy à HH:mm' }}</span>
+            </div>
+            <div class="metadata-item" *ngIf="produit.updatedAt">
+              <span class="metadata-label">Mis à jour le :</span>
+              <span class="metadata-value">{{ produit.updatedAt | date:'dd/MM/yyyy à HH:mm' }}</span>
+            </div>
+          </div>
+        </mat-expansion-panel>
+
       </mat-card-content>
-      <mat-card-actions>
-        <button mat-button color="primary" (click)="retournerALaListe()">Retour</button>
+
+      <mat-card-actions class="product-actions">
+        <button mat-raised-button color="primary" (click)="retournerALaListe()">
+          ← Retour à la liste
+        </button>
       </mat-card-actions>
     </mat-card>
   </ng-container>
@@ -30,8 +241,16 @@
   <ng-template #pasDeProduit>
     <mat-card class="error-card">
       <mat-card-content>
-        <p>Produit non trouvé.</p>
-        <button mat-button color="primary" (click)="retournerALaListe()">Retour</button>
+        <div class="error-content">
+          <div class="error-icon">🚫</div>
+          <h2>Produit non trouvé</h2>
+          <p>Le produit demandé n'existe pas ou n'est plus disponible.</p>
+        </div>
+        <div class="error-actions">
+          <button mat-raised-button color="primary" (click)="retournerALaListe()">
+            ← Retour à la liste
+          </button>
+        </div>
       </mat-card-content>
     </mat-card>
   </ng-template>
