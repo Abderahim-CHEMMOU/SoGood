@@ -32,13 +32,24 @@
           </div>
         </div>
         
-        <!-- Bouton Like -->
-        <button mat-icon-button class="like-button-detail" 
-                [class.liked]="isLiked" 
-                (click)="toggleLike()"
-                [attr.aria-label]="isLiked ? 'Retirer des favoris' : 'Ajouter aux favoris'">
-          <span class="like-icon">{{ isLiked ? '❤️' : '🤍' }}</span>
-        </button>
+        <!-- Boutons d'action -->
+        <div class="header-buttons">
+          <!-- Bouton Like -->
+          <button mat-icon-button class="like-button-detail" 
+                  [class.liked]="isLiked" 
+                  (click)="toggleLike()"
+                  [attr.aria-label]="isLiked ? 'Retirer des favoris' : 'Ajouter aux favoris'">
+            <span class="like-icon">{{ isLiked ? '❤️' : '🤍' }}</span>
+          </button>
+          
+          <!-- Bouton Supprimer (Admin uniquement) -->
+          <button mat-icon-button class="delete-button-detail" 
+                  *ngIf="estAdmin"
+                  (click)="supprimerProduit()"
+                  [attr.aria-label]="'Supprimer le produit'">
+            <span class="delete-icon">🗑️</span>
+          </button>
+        </div>
       </div>
 
       <mat-card-content class="product-content">

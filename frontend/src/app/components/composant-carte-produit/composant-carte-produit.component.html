@@ -1,15 +1,29 @@
 <mat-card [style.background-color]="obtenirCouleurNutriScore()" (click)="naviguerVersDetails()" class="clickable">
-  <button mat-icon-button class="like-button" 
-          [class.liked]="isLiked" 
-          (click)="toggleLike($event)"
-          [attr.aria-label]="isLiked ? 'Retirer des favoris' : 'Ajouter aux favoris'">
-    <span class="like-icon">{{ isLiked ? '❤️' : '🤍' }}</span>
-  </button>
+  
+  <!-- Boutons d'action en haut à droite -->
+  <div class="card-actions">
+    <!-- Bouton Like -->
+    <button mat-icon-button class="like-button" 
+            [class.liked]="isLiked" 
+            (click)="toggleLike($event)"
+            [attr.aria-label]="isLiked ? 'Retirer des favoris' : 'Ajouter aux favoris'">
+      <span class="like-icon">{{ isLiked ? '❤️' : '🤍' }}</span>
+    </button>
+    
+    <!-- Bouton Supprimer (Admin uniquement) -->
+    <button mat-icon-button class="delete-button" 
+            *ngIf="estAdmin"
+            (click)="supprimerProduit($event)"
+            [attr.aria-label]="'Supprimer le produit'">
+      <span class="delete-icon">❌</span>
+    </button>
+  </div>
   
   <mat-card-header>
     <mat-card-title>{{ produit.name }}</mat-card-title>
     <mat-card-subtitle>{{ produit.brand }}</mat-card-subtitle>
   </mat-card-header>
+  
   <mat-card-content>
     <p>Calories: <span class="value">{{ produit.calories }}</span> kcal</p>
     <p>Protéines: <span class="value">{{ produit.protein }}</span> g</p>

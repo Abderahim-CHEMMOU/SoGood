@@ -1,10 +1,13 @@
+// composant-detail-produit.component.ts - Version corrigée avec détails complets
 import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ServiceProduitsAlimentaires } from '../../services/service-produits-alimentaires';
+import { ServiceAuthentificationUtilisateur } from '../../services/service-authentification-utilisateur';
 import { ProduitAlimentaireDetailDTO } from '../../models/produit-alimentaire.dto';
 import { CommonModule } from '@angular/common';
 import { Observable, of } from 'rxjs';
@@ -21,13 +24,16 @@ import { LikeService } from '../../services/like.service';
 export class ComposantDetailProduit implements OnInit {
   produit$: Observable<ProduitAlimentaireDetailDTO | null>;
   isLiked = false;
+  estAdmin = false;
   private currentProduct: ProduitAlimentaireDetailDTO | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private serviceProduits: ServiceProduitsAlimentaires,
-    private likeService: LikeService
+    private authService: ServiceAuthentificationUtilisateur,
+    private likeService: LikeService,
+    private snackBar: MatSnackBar
   ) {
     console.log('ComposantDetailProduit: Initialisation');
     const id = this.route.snapshot.paramMap.get('id');
@@ -45,6 +51,8 @@ export class ComposantDetailProduit implements OnInit {
   }
 
   ngOnInit() {
+    this.estAdmin = this.authService.estAdmin();
+    
     this.produit$.subscribe(produit => {
       this.currentProduct = produit;
       if (produit) {
@@ -58,11 +66,62 @@ export class ComposantDetailProduit implements OnInit {
         this.isLiked = likedProducts.includes(this.currentProduct.id);
       }
     });
+    
+    // S'abonner aux changements d'authentification
+    this.authService.utilisateurConnecte$.subscribe(user => {
+      this.estAdmin = user ? user.role === 'admin' : false;
+    });
   }
 
   toggleLike() {
     if (this.currentProduct) {
       this.likeService.toggleLike(this.currentProduct.id, this.currentProduct.name);
+    }
+  }
+
+  supprimerProduit() {
+    if (!this.currentProduct) return;
+    
+    if (!this.estAdmin) {
+      this.snackBar.open('Accès refusé : privilèges administrateur requis', 'Fermer', {
+        duration: 3000,
+        panelClass: 'toaster-error'
+      });
+      return;
+    }
+
+    // Demander confirmation
+    if (confirm(`Êtes-vous sûr de vouloir supprimer le produit "${this.currentProduct.name}" ?\n\nCette action est irréversible.`)) {
+      console.log(`🗑️ Suppression confirmée pour: ${this.currentProduct.name} (${this.currentProduct.id})`);
+      
+      this.serviceProduits.supprimerProduit(this.currentProduct.id).subscribe({
+        next: (response) => {
+          console.log('✅ Produit supprimé avec succès:', response);
+          
+          this.snackBar.open(`Produit "${this.currentProduct!.name}" supprimé avec succès`, 'Fermer', {
+            duration: 4000,
+            panelClass: 'toaster-success'
+          });
+          
+          // Retourner à la liste après suppression
+          this.router.navigate(['/']);
+        },
+        error: (error) => {
+          console.error('❌ Erreur lors de la suppression:', error);
+          
+          let messageErreur = 'Erreur lors de la suppression du produit';
+          if (error.status === 403) {
+            messageErreur = 'Accès refusé : privilèges administrateur requis';
+          } else if (error.status === 404) {
+            messageErreur = 'Produit non trouvé';
+          }
+          
+          this.snackBar.open(messageErreur, 'Fermer', {
+            duration: 5000,
+            panelClass: 'toaster-error'
+          });
+        }
+      });
     }
   }
 

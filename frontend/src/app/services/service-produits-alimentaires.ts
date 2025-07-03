@@ -1,6 +1,7 @@
+// service-produits-alimentaires.ts - Correction pour s'adapter au backend
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
-import { Observable, of, delay, map, throwError } from 'rxjs';
+import { Observable, of, delay, map, throwError, tap } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ProduitAlimentaireDTO, ProductsResponse, mapBackendToDTO, ProduitAlimentaireDetailDTO, mapBackendToDetailDTO } from '../models/produit-alimentaire.dto';
 import { CacheService } from './cache.service';
@@ -308,8 +309,21 @@ export class ServiceProduitsAlimentaires {
   }
 
   /**
-   * Méthodes de gestion du cache (conservées)
+   * Supprimer un produit (Admin uniquement)
    */
+  supprimerProduit(id: string): Observable<any> {
+    console.log(`🗑️ Suppression du produit: ${id}`);
+    
+    return this.http.delete<any>(`${this.API_BASE_URL}${environment.api.endpoints.products}/${id}`)
+      .pipe(
+        tap(response => {
+          console.log('✅ Produit supprimé:', response);
+          // Invalider le cache après suppression
+          this.viderCacheProduits();
+        }),
+        catchError(this.gererErreurAPI.bind(this))
+      );
+  }
   viderCacheProduits(): void {
     this.cacheService.invalidatePattern('(search_|product_|category_|all_products).*');
     console.log('🗑️ Cache des produits vidé');
