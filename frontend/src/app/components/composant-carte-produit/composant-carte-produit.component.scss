@@ -1,3 +1,4 @@
+
 mat-card {
   background-color: var(--color-bg-elevated) !important;
   border: 1px solid var(--color-border) !important;
@@ -23,6 +24,91 @@ mat-card {
   }
 }
 
+// Conteneur des boutons d'action
+.card-actions {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: flex;
+  gap: var(--space-2);
+  z-index: 10;
+}
+
+// Bouton Like
+.like-button {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  cursor: pointer;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  
+  .like-icon {
+    font-size: var(--font-size-base);
+    transition: transform 0.2s ease;
+    line-height: 1;
+  }
+  
+  &.liked {
+    background-color: rgba(255, 255, 255, 1) !important;
+    border-color: var(--color-danger) !important;
+    
+    .like-icon {
+      transform: scale(1.1);
+    }
+  }
+  
+  &:hover {
+    background-color: white !important;
+    transform: scale(1.05);
+    box-shadow: var(--shadow-sm);
+    
+    .like-icon {
+      transform: scale(1.15);
+    }
+  }
+}
+
+// Bouton Supprimer (Admin)
+.delete-button {
+  background-color: rgba(239, 68, 68, 0.9) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  cursor: pointer;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  
+  .delete-icon {
+    font-size: var(--font-size-sm);
+    color: white;
+    transition: transform 0.2s ease;
+    line-height: 1;
+  }
+  
+  &:hover {
+    background-color: var(--color-danger) !important;
+    border-color: var(--color-danger) !important;
+    transform: scale(1.05);
+    box-shadow: var(--shadow-sm);
+    
+    .delete-icon {
+      transform: scale(1.15);
+    }
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
 mat-card-header {
   padding: var(--space-5) var(--space-5) var(--space-3) !important;
   
@@ -45,7 +131,10 @@ mat-card-header {
 
 mat-card-content {
   padding: 0 var(--space-5) var(--space-5) !important;
-  
+}
+
+// Cibler spécifiquement les éléments dans mat-card-content
+.mat-mdc-card-content {
   p {
     display: flex !important;
     justify-content: space-between !important;
@@ -60,12 +149,18 @@ mat-card-content {
       border-bottom: none !important;
       font-weight: var(--font-weight-medium) !important;
     }
-    
-    .value {
-      font-weight: var(--font-weight-semibold);
-      color: var(--color-text-primary);
-    }
   }
+}
+
+// Cibler spécifiquement la classe value
+.value {
+  font-weight: var(--font-weight-semibold) !important;
+  color: var(--color-text-primary) !important;
+  flex: 0 0 auto !important; // Ne pas grandir, ne pas rétrécir, taille auto
+  margin-left: auto !important; // Pousse l'élément vers la droite
+  text-align: right !important;
+  min-width: 60px !important;
+  font-variant-numeric: tabular-nums !important;
 }
 
 // Badge NutriScore
@@ -111,6 +206,23 @@ mat-card-content {
     margin-bottom: var(--space-4);
   }
   
+  .card-actions {
+    top: var(--space-2);
+    right: var(--space-2);
+    gap: var(--space-1);
+  }
+  
+  .like-button,
+  .delete-button {
+    width: 32px !important;
+    height: 32px !important;
+    
+    .like-icon,
+    .delete-icon {
+      font-size: var(--font-size-sm);
+    }
+  }
+  
   .nutri-badge {
     width: 32px;
     height: 32px;
@@ -132,25 +244,4 @@ mat-card-content {
 
 mat-card {
   animation: fadeInUp 0.3s ease-out;
-}
-
-.like-button {
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-  
-    
-    .like-icon {
-        font-size: var(--font-size-lg);
-        color: var(--color-text-secondary);
-        transition: color 0.2s ease;
-    }
-    
-    &.liked .like-icon {
-        color: var(--color-primary);
-    }
-    
-    &:hover .like-icon {
-        color: var(--color-primary-hover);
-    }
 }

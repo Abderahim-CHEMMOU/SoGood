@@ -205,3 +205,52 @@ body {
     background-color: var(--color-primary) !important;
   }
 }
+
+// À ajouter dans src/styles.scss
+
+// Styles pour les toasters/snackbars
+.toaster-success {
+  background-color: var(--color-success) !important;
+  color: white !important;
+  
+  .mat-mdc-snack-bar-action {
+    color: white !important;
+  }
+}
+
+.toaster-error {
+  background-color: var(--color-danger) !important;
+  color: white !important;
+  
+  .mat-mdc-snack-bar-action {
+    color: white !important;
+  }
+}
+
+.toaster-warning {
+  background-color: var(--color-warning) !important;
+  color: white !important;
+  
+  .mat-mdc-snack-bar-action {
+    color: white !important;
+  }
+}
+
+// Styles pour les confirmations
+.mat-mdc-dialog-container {
+  background-color: var(--color-bg-elevated) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.toaster-success-detailed {
+  background-color: var(--color-success) !important;
+  color: white !important;
+  white-space: pre-line !important; // Pour les retours à la ligne
+  max-width: 500px !important;
+  font-family: monospace !important;
+  
+  .mat-mdc-snack-bar-action {
+    color: white !important;
+    font-weight: bold !important;
+  }
+}
