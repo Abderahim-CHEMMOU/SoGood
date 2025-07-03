@@ -1,0 +1,20 @@
+{
+  "model_name": "RandomForest_conservative",
+  "anti_overfitting_protection": true,
+  "no_data_leakage": true,
+  "performance": {
+    "test_r2": 0.886382688121778,
+    "validation_r2": 0.8811304932348756,
+    "overfitting_score": -0.002247659491078413,
+    "generalization_score": 13.607228228853154
+  },
+  "best_params": {
+    "max_depth": 15,
+    "max_features": 0.5,
+    "min_samples_leaf": 10,
+    "min_samples_split": 20,
+    "n_estimators": 100
+  },
+  "features_count": 20,
+  "timestamp": "20250703_085529"
+}
