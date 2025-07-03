@@ -2,7 +2,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, delay, map, throwError, tap } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ProduitAlimentaireDTO, ProductsResponse, mapBackendToDTO, ProduitAlimentaireDetailDTO, mapBackendToDetailDTO } from '../models/produit-alimentaire.dto';
+import { 
+  ProduitAlimentaireDTO, 
+  ProductsResponse, 
+  mapBackendToDTO, 
+  ProduitAlimentaireDetailDTO, 
+  mapBackendToDetailDTO,
+  PredictionNutriScoreResponse,
+  PredictionNutriScoreRequest,
+  mapPredictionToDetailDTO
+} from '../models/produit-alimentaire.dto';
 import { CacheService } from './cache.service';
 import { environment } from '../../environments/environment';
 
@@ -36,7 +45,6 @@ export class ServiceProduitsAlimentaires {
       url = `${this.API_BASE_URL}${environment.api.endpoints.products}/search`;
       params = params.set('name', recherche.trim());
       console.log(`🔍 URL de recherche: ${url}?name=${recherche.trim()}`);
-      console.log(`🔍 Terme de recherche envoyé: "${recherche.trim()}" (longueur: ${recherche.trim().length})`);
     } else {
       // Utiliser l'endpoint général avec pagination
       params = params.set('page', page.toString()).set('limit', '20');
@@ -46,31 +54,17 @@ export class ServiceProduitsAlimentaires {
     const searchObservable = this.http.get<any>(url, { params }).pipe(
       map(response => {
         console.log(`🔍 Réponse brute du backend pour "${recherche}":`, response);
-        console.log(`🔍 Type de réponse:`, typeof response, Array.isArray(response));
         
         // Le backend peut renvoyer soit un tableau, soit un objet avec products
         let products: any[] = [];
         
         if (Array.isArray(response)) {
-          // Si c'est un tableau direct
           products = response;
-          console.log(`📦 Tableau direct reçu: ${products.length} produits`);
         } else if (response && response.products && Array.isArray(response.products)) {
-          // Si c'est un objet avec products
           products = response.products;
-          console.log(`📦 Objet avec products reçu: ${products.length} produits`);
         } else {
           console.warn('⚠️ Format de réponse inattendu:', response);
           products = [];
-        }
-        
-        // Afficher les premiers résultats pour déboguer
-        if (products.length > 0) {
-          console.log(`📦 Premiers produits trouvés:`, products.slice(0, 3).map(p => ({ 
-            id: p.id, 
-            name: p.name, 
-            brand: p.brand 
-          })));
         }
         
         // Mapper les données du backend vers le DTO
@@ -151,21 +145,21 @@ export class ServiceProduitsAlimentaires {
     
     console.log(`🏷️ Recherche par catégorie: ${categorie}`);
     
-    // Définir les ranges pour chaque catégorie
+    // Définir les ranges pour chaque catégorie selon le mapping du backend
     let minScore: number;
     let maxScore: number;
     
     switch (categorie) {
       case 'sains':
         minScore = -15; // Score le plus bas possible
-        maxScore = 3;   // A et B
+        maxScore = 6;   // A+ (< 0), A (0-2), B (3-6)
         break;
       case 'moderes':
-        minScore = 4;   // Juste après B
-        maxScore = 11;  // C
+        minScore = 7;   // Début de C
+        maxScore = 10;  // C (7-10)
         break;
       case 'dangereux':
-        minScore = 12;  // Juste après C
+        minScore = 11;  // D (11-14) et E (≥15)
         maxScore = 40;  // Score le plus haut possible
         break;
     }
@@ -178,52 +172,32 @@ export class ServiceProduitsAlimentaires {
       .set('min', minScore.toString())
       .set('max', maxScore.toString())
       .set('page', '1')
-      .set('limit', '50'); // Plus de résultats pour cette catégorie
-    
-    console.log(`🔍 URL catégorie: ${url}?min=${minScore}&max=${maxScore}&page=1&limit=50`);
+      .set('limit', '50');
     
     const categoryObservable = this.http.get<any>(url, { params }).pipe(
       map(response => {
         console.log(`🏷️ Réponse brute backend pour ${categorie}:`, response);
-        console.log(`🏷️ URL appelée: ${url}?min=${minScore}&max=${maxScore}&page=1&limit=50`);
         
         let products: any[] = [];
         
         if (Array.isArray(response)) {
           products = response;
-          console.log(`📊 Réponse format tableau: ${products.length} produits`);
         } else if (response && response.products && Array.isArray(response.products)) {
           products = response.products;
-          console.log(`📊 Réponse format objet: ${products.length} produits`);
-          console.log(`📊 Pagination info:`, response.pagination);
-          console.log(`📊 Search criteria:`, response.search_criteria);
         } else {
           console.warn('⚠️ Format de réponse inattendu pour catégorie:', response);
           products = [];
         }
         
-        // Vérifier les scores des produits reçus
-        console.log(`📊 Vérification des scores reçus pour ${categorie}:`);
-        products.forEach((product, index) => {
-          if (index < 5) { // Afficher les 5 premiers seulement
-            console.log(`  - ${product.name}: score ${product.nutriscore_score}`);
-          }
-        });
-        
         // Mapper les données du backend vers le DTO
         const mappedProducts = products.map(product => mapBackendToDTO(product));
         
         console.log(`🏷️ Produits mappés pour ${categorie}: ${mappedProducts.length}`);
-        console.log(`📊 Scores après mapping:`, mappedProducts.slice(0, 5).map(p => ({ 
-          name: p.name, 
-          score: p.nutriscore_score 
-        })));
         
         return mappedProducts;
       }),
       catchError(error => {
         console.error(`❌ Erreur filtrage ${categorie}:`, error);
-        console.error(`❌ URL qui a échoué: ${url}?min=${minScore}&max=${maxScore}&page=1&limit=50`);
         return this.gererErreurAPI(error);
       })
     );
@@ -240,21 +214,18 @@ export class ServiceProduitsAlimentaires {
       let pageActuelle = 1;
 
       const chargerPage = () => {
-        // Utiliser l'endpoint général pour charger toutes les pages
         this.http.get<any>(`${this.API_BASE_URL}${environment.api.endpoints.products}`, {
           params: new HttpParams()
             .set('page', pageActuelle.toString())
-            .set('limit', '50') // Plus de produits par page pour optimiser
+            .set('limit', '50')
         }).subscribe({
           next: (response) => {
-            console.log(`🔍 Réponse page ${pageActuelle}:`, response);
-            
             let products: any[] = [];
             let hasNext = false;
             
             if (Array.isArray(response)) {
               products = response;
-              hasNext = products.length === 50; // Si on a le max, il y a peut-être une page suivante
+              hasNext = products.length === 50;
             } else if (response && response.products) {
               products = response.products;
               hasNext = response.pagination ? response.pagination.hasNext : false;
@@ -267,7 +238,7 @@ export class ServiceProduitsAlimentaires {
             
             if (hasNext && mappedProducts.length > 0) {
               pageActuelle++;
-              chargerPage(); // Récursion pour la page suivante
+              chargerPage();
             } else {
               console.log(`✅ Toutes les pages chargées: ${tousLesProduits.length} produits au total`);
               observer.next(tousLesProduits);
@@ -302,25 +273,122 @@ export class ServiceProduitsAlimentaires {
     }
     
     console.error('❌ Erreur API produits:', messageErreur, error);
-    console.error('❌ Détails erreur:', error.error);
     
     return throwError(() => new Error(messageErreur));
   }
 
   /**
-   * Ajouter un produit (Admin uniquement)
+   * Ajouter un produit avec prédiction NutriScore (Admin uniquement)
+   * Cette méthode utilise l'endpoint de prédiction ET sauvegarde
    */
-  ajouterProduit(produitData: any): Observable<any> {
-    console.log(`➕ Ajout d'un nouveau produit:`, produitData);
+  ajouterProduit(produitData: any): Observable<ProduitAlimentaireDetailDTO> {
+    console.log(`➕ Ajout d'un nouveau produit avec prédiction NutriScore:`, produitData);
     
-    return this.http.post<any>(`${this.API_BASE_URL}${environment.api.endpoints.products}`, produitData)
+    // Transformer les données du formulaire Angular vers le format attendu par l'API
+    const predictionRequest: PredictionNutriScoreRequest = {
+      // Noms (au moins un requis)
+      product_name: produitData.product_name,
+      name: produitData.name || produitData.product_name,
+      
+      // Marques
+      brands: produitData.brands,
+      brand: produitData.brand || produitData.brands,
+      
+      // Catégories
+      categories_en: produitData.categories_en,
+      category: produitData.category || produitData.categories_en,
+      
+      // Valeurs nutritionnelles OBLIGATOIRES
+      energy_kcal_100g: produitData.energy_kcal_100g,
+      calories: produitData.calories || produitData.energy_kcal_100g,
+      fat_100g: produitData.fat_100g || 0,
+      saturated_fat_100g: produitData.saturated_fat_100g || 0,
+      sugars_100g: produitData.sugars_100g || 0,
+      salt_100g: produitData.salt_100g || 0,
+      fiber_100g: produitData.fiber_100g || 0,
+      proteins_100g: produitData.proteins_100g,
+      protein_100g: produitData.protein_100g || produitData.proteins_100g,
+      
+      // Fruits et légumes
+      fruits_vegetables_nuts_100g: produitData.fruits_vegetables_nuts_100g,
+      fruits_vegetables_nuts_estimate_from_ingredients_100g: produitData.fruits_vegetables_nuts_estimate_from_ingredients_100g,
+      
+      // Autres champs optionnels
+      generic_name: produitData.generic_name,
+      quantity: produitData.quantity,
+      origins_en: produitData.origins_en,
+      countries_en: produitData.countries_en,
+      traces_en: produitData.traces_en,
+      
+      // Additifs
+      additives_n: produitData.additives_n,
+      additives_en: produitData.additives_en,
+      additives: produitData.additives,
+      
+      // Scores additionnels
+      ecoscore_score: produitData.ecoscore_score,
+      ecoscore_grade: produitData.ecoscore_grade,
+      nutrition_score_fr_100g: produitData.nutrition_score_fr_100g,
+      
+      // Catégorisation
+      food_groups_en: produitData.food_groups_en,
+      main_category_en: produitData.main_category_en,
+      
+      // Valeurs nutritionnelles étendues
+      cholesterol_100g: produitData.cholesterol_100g,
+      carbohydrates_100g: produitData.carbohydrates_100g,
+      monounsaturated_fat_100g: produitData.monounsaturated_fat_100g,
+      polyunsaturated_fat_100g: produitData.polyunsaturated_fat_100g,
+      trans_fat_100g: produitData.trans_fat_100g,
+      sodium_100g: produitData.sodium_100g,
+      
+      // Vitamines et minéraux
+      vitamin_a_100g: produitData.vitamin_a_100g,
+      vitamin_c_100g: produitData.vitamin_c_100g,
+      potassium_100g: produitData.potassium_100g,
+      calcium_100g: produitData.calcium_100g,
+      iron_100g: produitData.iron_100g
+    };
+    
+    // Nettoyer les valeurs undefined
+    Object.keys(predictionRequest).forEach(key => {
+      if (predictionRequest[key as keyof PredictionNutriScoreRequest] === undefined) {
+        delete predictionRequest[key as keyof PredictionNutriScoreRequest];
+      }
+    });
+    
+    console.log('🔮 Données formatées pour la prédiction:', predictionRequest);
+    
+    return this.http.post<PredictionNutriScoreResponse>(`${this.API_BASE_URL}${environment.api.endpoints.products}`, predictionRequest)
       .pipe(
-        tap((response: any) => {
-          console.log('✅ Produit ajouté:', response);
+        map((response: PredictionNutriScoreResponse) => {
+          console.log('✅ Produit ajouté avec prédiction NutriScore:', response);
+          
+          // Mapper la réponse directement vers notre DTO détaillé
+          const mappedProduct = mapPredictionToDetailDTO(response);
+          
           // Invalider le cache après ajout
           this.viderCacheProduits();
+          
+          return mappedProduct;
         }),
-        catchError(this.gererErreurAPI.bind(this))
+        catchError(error => {
+          console.error('❌ Erreur lors de l\'ajout avec prédiction:', error);
+          
+          // Gestion spécifique des erreurs de prédiction
+          if (error.status === 400) {
+            const errorMessage = error.error?.error || 'Données invalides';
+            const errorField = error.error?.field;
+            if (errorField) {
+              return throwError(() => new Error(`Erreur de validation: ${errorMessage} (champ: ${errorField})`));
+            }
+            return throwError(() => new Error(`Erreur de validation: ${errorMessage}`));
+          } else if (error.status === 503) {
+            return throwError(() => new Error('Service de prédiction indisponible'));
+          }
+          
+          return this.gererErreurAPI(error);
+        })
       );
   }
 
@@ -340,6 +408,10 @@ export class ServiceProduitsAlimentaires {
         catchError(this.gererErreurAPI.bind(this))
       );
   }
+
+  /**
+   * Méthodes de gestion du cache
+   */
   viderCacheProduits(): void {
     this.cacheService.invalidatePattern('(search_|product_|category_|all_products).*');
     console.log('🗑️ Cache des produits vidé');
@@ -357,7 +429,7 @@ export class ServiceProduitsAlimentaires {
   }
 
   /**
-   * Préchargement intelligent adapté à la vraie API
+   * Préchargement intelligent
    */
   prechargerDonneesEssentielles(): void {
     console.log('📥 Préchargement des données essentielles...');
@@ -372,13 +444,11 @@ export class ServiceProduitsAlimentaires {
       }
     });
     
-    // Précharger les catégories populaires (après un délai)
+    // Précharger les catégories populaires
     setTimeout(() => {
       this.rechercherProduitsParCategorie('sains').subscribe();
       this.rechercherProduitsParCategorie('dangereux').subscribe();
     }, 1000);
-    
-    console.log('✅ Préchargement lancé');
   }
 
   /**
@@ -406,9 +476,10 @@ export class ServiceProduitsAlimentaires {
             totalScore += produit.nutriscore_score;
             produitsAvecScore++;
 
-            if (produit.nutriscore_score <= 3) {
+            // Utiliser le mapping du backend pour les catégories
+            if (produit.nutriscore_score <= 6) {
               parCategorie.sains++;
-            } else if (produit.nutriscore_score <= 11) {
+            } else if (produit.nutriscore_score <= 10) {
               parCategorie.moderes++;
             } else {
               parCategorie.dangereux++;
@@ -433,11 +504,30 @@ export class ServiceProduitsAlimentaires {
   obtenirRangeCategorie(categorie: 'sains' | 'moderes' | 'dangereux'): { min: number; max: number } {
     switch (categorie) {
       case 'sains':
-        return { min: -15, max: 3 };
+        return { min: -15, max: 6 };
       case 'moderes':
-        return { min: 4, max: 11 };
+        return { min: 7, max: 10 };
       case 'dangereux':
-        return { min: 12, max: 40 };
+        return { min: 11, max: 40 };
+    }
+  }
+
+  /**
+   * Méthode utilitaire pour obtenir le grade NutriScore à partir du score
+   */
+  obtenirGradeNutriScore(score: number): { grade: string; description: string } {
+    if (score < 0) {
+      return { grade: 'A+', description: 'Excellent produit' };
+    } else if (score < 3) {
+      return { grade: 'A', description: 'Très bon produit' };
+    } else if (score < 7) {
+      return { grade: 'B', description: 'Bon produit' };
+    } else if (score < 11) {
+      return { grade: 'C', description: 'Produit moyen' };
+    } else if (score < 15) {
+      return { grade: 'D', description: 'Produit de qualité médiocre' };
+    } else {
+      return { grade: 'E', description: 'Produit de très mauvaise qualité' };
     }
   }
 }
