@@ -1,0 +1,51 @@
+# Dépendances
+node_modules
+npm-debug.log*
+
+# Fichiers de build
+dist
+.angular
+
+# Fichiers de développement
+.vscode
+.idea
+*.swp
+*.swo
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Fichiers temporaires
+.tmp
+.temp
+
+# Tests
+coverage
+.nyc_output
+karma.conf.js
+src/**/*.spec.ts
+
+# Fichiers de configuration locale
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Documentation
+README.md
+*.md
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml

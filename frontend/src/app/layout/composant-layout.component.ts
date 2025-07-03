@@ -43,16 +43,8 @@ export class ComposantLayout implements OnInit, OnDestroy {
     // S'abonner à l'état de connexion
     this.utilisateurConnecte$ = this.authService.utilisateurConnecte$;
     
-    // Détecter les changements pour le OnPush
-    const authSub = this.utilisateurConnecte$.subscribe((user) => {
-      // Vérifier que l'utilisateur est bien connecté (protection supplémentaire)
-      if (!user) {
-        console.log('❌ Utilisateur déconnecté détecté dans le layout, redirection');
-        this.router.navigate(['/authentification']);
-      }
-      this.cdr.detectChanges();
-    });
-    this.subscriptions.push(authSub);
+    // CORRECTION: Déplacer la souscription vers ngOnInit
+    // Ne pas appeler detectChanges() ici !
   }
 
   ngOnInit() {
@@ -65,6 +57,21 @@ export class ComposantLayout implements OnInit, OnDestroy {
     }
 
     console.log(`✅ Layout chargé pour l'utilisateur: ${user.username} (${user.role})`);
+
+    // CORRECTION: Déplacer la souscription ici et utiliser setTimeout pour éviter l'erreur
+    const authSub = this.utilisateurConnecte$.subscribe((user) => {
+      // Vérifier que l'utilisateur est bien connecté (protection supplémentaire)
+      if (!user) {
+        console.log('❌ Utilisateur déconnecté détecté dans le layout, redirection');
+        this.router.navigate(['/authentification']);
+      }
+      
+      // CORRECTION: Utiliser setTimeout pour éviter l'erreur "Should be run in update mode"
+      setTimeout(() => {
+        this.cdr.detectChanges();
+      }, 0);
+    });
+    this.subscriptions.push(authSub);
 
     // S'abonner aux changements de route pour gérer les produits en attente
     const routerSub = this.router.events.pipe(
