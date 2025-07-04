@@ -20,8 +20,8 @@ export interface AnalyseIA {
 })
 export class ServiceIADeepSeek {
   private readonly DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
-  private readonly DEEPSEEK_API_KEY = 'sk-totoro'; // À configurer
-  private readonly CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 jours en millisecondes
+  private readonly DEEPSEEK_API_KEY = 'sk-sk'; 
+  private readonly CACHE_TTL = 30 * 24 * 60 * 60 * 1000; 
 
   constructor(
     private http: HttpClient,
@@ -44,7 +44,7 @@ export class ServiceIADeepSeek {
     }
 
     // Si pas en cache, faire l'appel à l'API
-    if (this.DEEPSEEK_API_KEY === 'sk-totoro') {
+    if (this.DEEPSEEK_API_KEY === 'sk-sk') {
       console.log('🔑 Mode démo - API Key DeepSeek non configurée');
       return this.genererAnalyseDemonstration(produit);
     }
